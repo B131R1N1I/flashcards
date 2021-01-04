@@ -35,7 +35,7 @@ namespace flashcards_server.User
         }
 
         // private uint _id;
-        public uint id { get; }
+        public uint? id { get; }
 
         private string _username;
         public string username
@@ -119,11 +119,30 @@ namespace flashcards_server.User
             }
         }
 
-        readonly protected string password; // idk yet if it should be a string
+        private string _password; // idk yet if it should be a string
 
-        public User(string username, string email, string name, string surname, string password)
+        public string password
         {
-            // this.ID = id;
+            get=>_password;
+            set
+            {
+                try
+                {
+                    // OnPasswordChanged(value);
+                    _password = value;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Cannot set passowrd ");
+                    Console.WriteLine(e.Message);
+                    throw;
+                }
+            }
+        }
+
+        public User(string username, string email, string name, string surname, string password, uint? id=null)
+        {
+            this.id = id;
             this.username = username;
             this.email = email;
             this.name = name;
