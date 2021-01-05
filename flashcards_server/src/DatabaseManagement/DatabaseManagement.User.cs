@@ -9,7 +9,6 @@ namespace flashcards_server.DatabaseManagement
         public event EventHandler<AddedUserEventArgs> UserAddedEventHandler;
         // it will be read from json file
         // private NpgsqlConnection conn = new NpgsqlConnection("Server=localhost;User Id=flashcards_app; Password=fc_app;Database=flashcards");
-        private NpgsqlConnection conn;
 
         protected virtual void OnUserAdded(User.User user)
         {
@@ -17,20 +16,6 @@ namespace flashcards_server.DatabaseManagement
                 UserAddedEventHandler(this, new AddedUserEventArgs { user = user });
         }
 
-        public DatabaseManagement(string server, string user, string password /*temporary*/, string database)
-        {
-            conn = new NpgsqlConnection($"Server={server};User Id={user}; Password={password};Database={database}");
-        }
-
-        public void OpenConnection()
-        {
-            conn.Open();
-        }
-
-        public void CloseConnection()
-        {
-            conn.Close();
-        }
 
         public void AddUserToDatabase(User.User user)
         {
@@ -51,6 +36,7 @@ namespace flashcards_server.DatabaseManagement
                 }
             }
         }
+
         public void UpdateUserEmail(User.User user, string newEmail)
         {
             using (var cmd = new NpgsqlCommand($"UPDATE users SET email = '{newEmail}' WHERE id={user.id}", conn))
@@ -78,6 +64,56 @@ namespace flashcards_server.DatabaseManagement
                 // some code (try..catch) etc.
                 cmd.ExecuteNonQuery();
                 System.Console.WriteLine("updated surname");
+            }
+        }
+
+        public bool IsUsernameUnique(string username)
+        {
+            using (var cmd = new NpgsqlCommand($"SELECT COUNT(*) FROM users WHERE users.username = '{username}'", conn))
+            {
+                var output = (Int64)cmd.ExecuteScalar();
+                return output == 0;
+            }
+        }
+
+        public bool IsEmailUnique(string email)
+        {
+            using (var cmd = new NpgsqlCommand($"SELECT COUNT(*) FROM users WHERE users.email = '{email}'", conn))
+            {
+                var output = (Int64)cmd.ExecuteScalar();
+                return output == 0;
+            }
+        }
+
+        public User.User GetUser(int id)
+        {
+            using (var cmd = new NpgsqlCommand($"SELECT * FROM users WHERE id = {id} LIMIT 1;", conn))
+            {
+                User.User user;
+                using (var output = cmd.ExecuteReader())
+                {
+                    output.Read();
+                    user = new User.User(output[1].ToString(), output[2].ToString(),
+                                             output[3].ToString(), output[4].ToString(),
+                                             output[5].ToString(), (Int32)output[0]);
+                }
+                return user;
+            }
+        }
+
+        public User.User GetUser(string username)
+        {
+            using (var cmd = new NpgsqlCommand($"SELECT * FROM users WHERE username = '{username}' LIMIT 1;", conn))
+            {
+                User.User user;
+                using (var output = cmd.ExecuteReader())
+                {
+                    output.Read();
+                    user = new User.User(output[1].ToString(), output[2].ToString(),
+                                             output[3].ToString(), output[4].ToString(),
+                                             output[5].ToString(), (Int32)output[0]);
+                }
+                return user;
             }
         }
     }

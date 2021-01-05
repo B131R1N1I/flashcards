@@ -20,29 +20,14 @@ namespace flashcards_server
             db.OpenConnection();
             db.AddUserToDatabase(u);
             db.UpdateUserEmail(u, "żółć@wąż→→.com");
-            // System.Console.WriteLine($"{us[0]} \t {us[1]}");
-            // System.Console.WriteLine(i[]);
+            System.Console.WriteLine(db.IsUsernameUnique("aaab1234"));
+            var getuser = db.GetUser(4);
+            System.Console.WriteLine(getuser.email);
+
+
+            var getu = db.GetUser("aaab1234");
+            System.Console.WriteLine(getu.email);
             System.Console.WriteLine("end");
         }
     }
 }
-// var connString = "Host=myserver;Username=mylogin;Password=mypass;Database=mydatabase";
-
-// var conn = new NpgsqlConnection("Server=localhost;User Id=flashcards_app; Password=fc_app;Database=flashcards");
-// conn.Open();
-// var cmd = new NpgsqlCommand("SELECT * FROM users;", conn);
-// var us = cmd.ExecuteReader();
-
-// while (us.Read())
-//     for (int i = 0; i > -5; i++)
-//     {
-//         try
-//         {
-//             System.Console.WriteLine(us[i]);
-//         }
-//         catch
-//         {
-//             break;
-//         }
-//     }
-// conn.Close();

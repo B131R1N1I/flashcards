@@ -150,6 +150,16 @@ namespace flashcards_server.User
             this.password = password;
         }
 
+        public User(string username, string email, string name, string surname, string password, int id)
+        {
+            this.id = uint.Parse(id.ToString());
+            this.username = username;
+            this.email = email;
+            this.name = name;
+            this.surname = surname;
+            this.password = password;
+        }
+
         public void RegisterUser(User user)
         {
             throw new NotImplementedException("Cannot register users yet");
@@ -158,10 +168,14 @@ namespace flashcards_server.User
         /// <sumary>
         /// GetUser methods serches for user in database and returns if any matches
         /// </sumary> 
-
         static public User GetUser(/* args */)
         {
             throw new NotImplementedException("Connection with database has not been created yet");
         }
+
+        // public override string ToString()
+        // {
+        //     return base.ToString();
+        // }
     }
 }
