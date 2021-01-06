@@ -20,7 +20,9 @@ namespace flashcards_server.DatabaseManagement
                 throw new ArgumentException($"username {user.username} is already used");
             if (!IsEmailUnique(user.email))
                 throw new ArgumentException($"email {user.email} is already used");
-            using (var cmd = new NpgsqlCommand($"INSERT INTO users (username, email, name, surname, password) VALUES ('{user.username}', '{user.email}', '{user.name}', '{user.surname}', '{user.password}')", conn))
+            using (var cmd = new NpgsqlCommand($"INSERT INTO users (username, email, name, surname, password) VALUES ('{user.username}', '{user.email}', '{user.name}', '{user.surname}', md5('{user.password}'));", conn))
+            // using (var cmd = new NpgsqlCommand($"INSERT INTO users (username, email, name, surname, password) VALUES ('{user.username}', '{user.email}', '{user.name}', '{user.surname}', '{user.password}');", conn))
+
             {
                 try
                 {
@@ -170,6 +172,16 @@ namespace flashcards_server.DatabaseManagement
             }
         }
 
-
+        public bool PasswordMatch(User.User user, string password)
+        {
+            using (var cmd = new NpgsqlCommand($"SELECT md5('{password}') = password FROM users WHERE id = {user.id};", conn))
+            {
+                var output = cmd.ExecuteReader();
+                output.Read();
+                if (!output.HasRows)
+                    throw new NpgsqlException("No user found to match password");
+                return (bool)output[0];
+            }
+        }
     }
 }
