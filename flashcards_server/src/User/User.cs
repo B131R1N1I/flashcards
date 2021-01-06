@@ -10,10 +10,18 @@ namespace flashcards_server.User
         public event EventHandler<NameEventArgs> NameChangedEventHandler;
         public event EventHandler<SurnameEventArgs> SurnameChangedEventHandler;
 
+        public event EventHandler<PasswordEventArgs> PasswordChangedEventHandler;
+
         protected virtual void OnUsernameChanged(string username)
         {
             if (UsernameChangedEventHandler != null)
                 UsernameChangedEventHandler(this, new UsernameEventArgs { username = username });
+        }
+
+        protected virtual void OnPasswordChanged(string password)
+        {
+            if (PasswordChangedEventHandler != null)
+                PasswordChangedEventHandler(this, new PasswordEventArgs { password = password });
         }
 
         protected virtual void OnEmailChanged(string email)
@@ -102,7 +110,7 @@ namespace flashcards_server.User
 
         public string surname
         {
-            get => _surname; 
+            get => _surname;
             set
             {
                 try
@@ -123,12 +131,12 @@ namespace flashcards_server.User
 
         public string password
         {
-            get=>_password;
+            get => _password;
             set
             {
                 try
                 {
-                    // OnPasswordChanged(value);
+                    OnPasswordChanged(value);
                     _password = value;
                 }
                 catch (Exception e)
@@ -140,24 +148,24 @@ namespace flashcards_server.User
             }
         }
 
-        public User(string username, string email, string name, string surname, string password, uint? id=null)
+        public User(string username, string email, string name, string surname, string password, uint? id = null)
         {
             this.id = id;
-            this.username = username;
-            this.email = email;
-            this.name = name;
-            this.surname = surname;
-            this.password = password;
+            this._username = username;
+            this._email = email;
+            this._name = name;
+            this._surname = surname;
+            this._password = password;
         }
 
         public User(string username, string email, string name, string surname, string password, int id)
         {
             this.id = uint.Parse(id.ToString());
-            this.username = username;
-            this.email = email;
-            this.name = name;
-            this.surname = surname;
-            this.password = password;
+            this._username = username;
+            this._email = email;
+            this._name = name;
+            this._surname = surname;
+            this._password = password;
         }
 
         public void RegisterUser(User user)
@@ -173,9 +181,19 @@ namespace flashcards_server.User
             throw new NotImplementedException("Connection with database has not been created yet");
         }
 
-        // public override string ToString()
-        // {
-        //     return base.ToString();
-        // }
+        public override string ToString()
+        {
+            return $"User [{id}: ({username}, {email}, {name}, {surname})]";
+        }
+
+        public override bool Equals(object obj)
+        {
+            return (obj is User && ((User)obj).name == this.name && ((User)obj).email == this.email);
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
     }
 }
