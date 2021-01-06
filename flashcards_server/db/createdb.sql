@@ -5,6 +5,9 @@ DROP TABLE IF EXISTS active_sets CASCADE;
 DROP TABLE IF EXISTS card_status;
 
 
+-- CREATE EXTENSION pgcrypto;
+
+
 
 CREATE TABLE users(
 	id					SERIAL,
@@ -79,6 +82,7 @@ CREATE TABLE card_status(
 		FOREIGN KEY(user_id)
 			REFERENCES users(id)
 );
+-- CREATE EXTENSION pgcrypto;
 
 ALTER user flashcards_app with encrypted password 'fc_app';
 GRANT ALL PRIVILEGES ON TABLE users TO flashcards_app;
