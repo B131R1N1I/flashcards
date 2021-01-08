@@ -49,7 +49,7 @@ namespace flashcards_server.DatabaseManagement
             }
         }
 
-        protected void UpdateUserEmail(Object source, User.User.EmailEventArgs args)
+        public void UpdateUserEmail(Object source, User.User.EmailEventArgs args)
         {
             UpdateUserEmail((User.User)source, args.email);
         }
@@ -64,7 +64,7 @@ namespace flashcards_server.DatabaseManagement
             }
         }
 
-        protected void UpdateUserName(Object source, User.User.NameEventArgs args)
+        public void UpdateUserName(Object source, User.User.NameEventArgs args)
         {
             UpdateUserName((User.User)source, args.name);
         }
@@ -79,14 +79,14 @@ namespace flashcards_server.DatabaseManagement
             }
         }
 
-        protected void UpdateUserSurname(Object source, User.User.SurnameEventArgs args)
+        public void UpdateUserSurname(Object source, User.User.SurnameEventArgs args)
         {
             UpdateUserSurname((User.User)source, args.surname);
         }
 
         protected void UpdateUserPassword(User.User user, string newPassword)
         {
-            using (var cmd = new NpgsqlCommand($"UPDATE users SET password = '{newPassword} WHERE id={user.id}'", conn))
+            using (var cmd = new NpgsqlCommand($"UPDATE users SET password = md5('{newPassword}') WHERE id={user.id}", conn))
             {
                 // some code (try..catch) etc.
                 cmd.ExecuteNonQuery();
@@ -94,7 +94,7 @@ namespace flashcards_server.DatabaseManagement
             }
         }
 
-        protected void UpdateUserPassword(Object source, User.User.PasswordEventArgs args)
+        public void UpdateUserPassword(Object source, User.User.PasswordEventArgs args)
         {
             UpdateUserPassword((User.User)source, args.password);
         }
@@ -176,12 +176,15 @@ namespace flashcards_server.DatabaseManagement
         {
             using (var cmd = new NpgsqlCommand($"SELECT md5('{password}') = password FROM users WHERE id = {user.id};", conn))
             {
-                var output = cmd.ExecuteReader();
-                output.Read();
-                if (!output.HasRows)
-                    throw new NpgsqlException("No user found to match password");
-                return (bool)output[0];
+                using (var output = cmd.ExecuteReader())
+                {
+                    output.Read();
+                    if (!output.HasRows)
+                        throw new NpgsqlException("No user found to match password");
+                    return (bool)output[0];
+                }
             }
         }
+        
     }
 }
