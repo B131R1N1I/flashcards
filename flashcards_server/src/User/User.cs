@@ -5,12 +5,19 @@ namespace flashcards_server.User
 {
     public partial class User
     {
+        public static event EventHandler UserCreatedEventHandler;
         public event EventHandler<UsernameEventArgs> UsernameChangedEventHandler;
         public event EventHandler<EmailEventArgs> EmailChangedEventHandler;
         public event EventHandler<NameEventArgs> NameChangedEventHandler;
         public event EventHandler<SurnameEventArgs> SurnameChangedEventHandler;
 
         public event EventHandler<PasswordEventArgs> PasswordChangedEventHandler;
+
+        protected virtual void OnUserCreated(User user)
+        {
+            if (UserCreatedEventHandler != null)
+                UserCreatedEventHandler(this, new EventArgs());
+        }
 
         protected virtual void OnUsernameChanged(string username)
         {
@@ -156,6 +163,7 @@ namespace flashcards_server.User
             this._name = name;
             this._surname = surname;
             this._password = password;
+            OnUserCreated(this);
         }
 
         public User(string username, string email, string name, string surname, string password, int id)
@@ -166,6 +174,7 @@ namespace flashcards_server.User
             this._name = name;
             this._surname = surname;
             this._password = password;
+            OnUserCreated(this);
         }
 
         public void RegisterUser(User user)
