@@ -84,7 +84,7 @@ namespace flashcards_server.DatabaseManagement
 
         protected void UpdateUserPassword(User.User user, string newPassword)
         {
-            using (var cmd = new NpgsqlCommand($"UPDATE users SET password = '{newPassword}' WHERE id={user.id}", conn))
+            using (var cmd = new NpgsqlCommand($"UPDATE users SET password = md5('{newPassword}') WHERE id={user.id}", conn))
             {
                 // some code (try..catch) etc.
                 cmd.ExecuteNonQuery();
@@ -174,12 +174,15 @@ namespace flashcards_server.DatabaseManagement
         {
             using (var cmd = new NpgsqlCommand($"SELECT md5('{password}') = password FROM users WHERE id = {user.id};", conn))
             {
-                var output = cmd.ExecuteReader();
-                output.Read();
-                if (!output.HasRows)
-                    throw new NpgsqlException("No user found to match password");
-                return (bool)output[0];
+                using (var output = cmd.ExecuteReader())
+                {
+                    output.Read();
+                    if (!output.HasRows)
+                        throw new NpgsqlException("No user found to match password");
+                    return (bool)output[0];
+                }
             }
         }
+        
     }
 }
