@@ -6,7 +6,7 @@ namespace flashcards_server.DatabaseManagement
 {
     public partial class DatabaseManagement
     {
-        private NpgsqlConnection conn;
+        public readonly NpgsqlConnection conn;
 
         public DatabaseManagement(string server, string user, string password /*temporary*/, string database)
         {
