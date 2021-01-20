@@ -84,7 +84,7 @@ namespace flashcards_server.DatabaseManagement
 
         protected void UpdateUserPassword(User.User user, string newPassword)
         {
-            using (var cmd = new NpgsqlCommand($"UPDATE users SET password = '{newPassword} WHERE id={user.id}'", conn))
+            using (var cmd = new NpgsqlCommand($"UPDATE users SET password = '{newPassword}' WHERE id={user.id}", conn))
             {
                 // some code (try..catch) etc.
                 cmd.ExecuteNonQuery();
