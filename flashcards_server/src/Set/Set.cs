@@ -34,7 +34,7 @@ namespace flashcards_server.Set
                 IsPublicChanged(this, new IsPublicEventArgs { isPublic = isPublic });
         }
 
-        public uint id;
+        public readonly uint? id;
 
         private string _name;
 
@@ -119,6 +119,27 @@ namespace flashcards_server.Set
                     Console.WriteLine(e.Message);
                 }
             }
+        }
+
+        public Set(string name, User.User creator, User.User owner, DateTime createdDate, DateTime lastModification, bool isPublic, uint? id = null)
+        {
+            this.id = id;
+            this.name = name;
+            this.creator = creator;
+            this.owner = owner;
+            this.createdDate = createdDate;
+            this.lastModificationDate = lastModification;
+            this.isPublic = isPublic;
+        }
+        public Set(string name, User.User creator, User.User owner, DateTime createdDate, DateTime lastModification, bool isPublic, int id)
+        {
+            this.id = uint.Parse(id.ToString());
+            this.name = name;
+            this.creator = creator;
+            this.owner = owner;
+            this.createdDate = createdDate;
+            this.lastModificationDate = lastModification;
+            this.isPublic = isPublic;
         }
     }
 }

@@ -10,7 +10,6 @@ namespace flashcards_server.User
         public event EventHandler<EmailEventArgs> EmailChangedEventHandler;
         public event EventHandler<NameEventArgs> NameChangedEventHandler;
         public event EventHandler<SurnameEventArgs> SurnameChangedEventHandler;
-
         public event EventHandler<PasswordEventArgs> PasswordChangedEventHandler;
 
         protected virtual void OnUserCreated(User user)
@@ -177,9 +176,18 @@ namespace flashcards_server.User
             OnUserCreated(this);
         }
 
-        public void RegisterUser(User user)
+        public void RegisterUser(DatabaseManagement.DatabaseManagement database)
         {
-            throw new NotImplementedException("Cannot register users yet");
+            if (database.conn.Database == String.Empty)
+                throw new Npgsql.NpgsqlException("CONNECTION IS NOT OPEN");
+            try
+            {
+            database.AddUserToDatabase(this);
+            }
+            catch (ArgumentException)
+            {
+                throw;
+            }
         }
 
         /// <sumary>

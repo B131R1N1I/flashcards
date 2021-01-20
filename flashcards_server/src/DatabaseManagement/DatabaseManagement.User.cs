@@ -16,13 +16,11 @@ namespace flashcards_server.DatabaseManagement
 
         public void AddUserToDatabase(User.User user)
         {
-            if (!IsUsernameUnique(user.username))
-                throw new ArgumentException($"username {user.username} is already used");
-            if (!IsEmailUnique(user.email))
-                throw new ArgumentException($"email {user.email} is already used");
+            if (!IsUserUsernameUnique(user.username))
+                throw new NpgsqlException($"username {user.username} is already used");
+            if (!IsUserEmailUnique(user.email))
+                throw new NpgsqlException($"email {user.email} is already used");
             using (var cmd = new NpgsqlCommand($"INSERT INTO users (username, email, name, surname, password) VALUES ('{user.username}', '{user.email}', '{user.name}', '{user.surname}', md5('{user.password}'));", conn))
-            // using (var cmd = new NpgsqlCommand($"INSERT INTO users (username, email, name, surname, password) VALUES ('{user.username}', '{user.email}', '{user.name}', '{user.surname}', '{user.password}');", conn))
-
             {
                 try
                 {
@@ -99,18 +97,18 @@ namespace flashcards_server.DatabaseManagement
             UpdateUserPassword((User.User)source, args.password);
         }
 
-        public bool IsUsernameUnique(string username)
+        public bool IsUserUsernameUnique(string username)
         {
-            using (var cmd = new NpgsqlCommand($"SELECT COUNT(*) FROM users WHERE users.username = '{username}'", conn))
+            using (var cmd = new NpgsqlCommand($"SELECT COUNT(*) FROM users WHERE LOWER(users.username) = LOWER('{username}')", conn))
             {
                 var output = (Int64)cmd.ExecuteScalar();
                 return output == 0;
             }
         }
 
-        public bool IsEmailUnique(string email)
+        public bool IsUserEmailUnique(string email)
         {
-            using (var cmd = new NpgsqlCommand($"SELECT COUNT(*) FROM users WHERE users.email = '{email}'", conn))
+            using (var cmd = new NpgsqlCommand($"SELECT COUNT(*) FROM users WHERE LOWER(users.email) = LOWER('{email}')", conn))
             {
                 var output = (Int64)cmd.ExecuteScalar();
                 return output == 0;
