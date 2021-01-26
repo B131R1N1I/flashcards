@@ -27,7 +27,7 @@ namespace flashcards_server.DatabaseManagement
         public List<Set.Set> GetSetsByOwner(User.User user)
         {
             var listOfSets = new List<Set.Set>();
-            var listOfSets_temp = new List<Object[]>();
+            var listOfSetsTemp = new List<Object[]>();
             using (var cmd = new NpgsqlCommand($"SELECT * FROM sets WHERE owner_id = {user.id};", conn))
             {
                 try
@@ -40,10 +40,10 @@ namespace flashcards_server.DatabaseManagement
                         {
                             var temp = new Object[7];
                             output.GetValues(temp);
-                            listOfSets_temp.Add(temp);
+                            listOfSetsTemp.Add(temp);
                         }
                     }
-                    foreach (var i in listOfSets_temp)
+                    foreach (var i in listOfSetsTemp)
                     {
                         listOfSets.Add(new Set.Set((string)i[1], GetUserById((int)i[2]), GetUserById((int)i[3]), (DateTime)i[4], (DateTime)i[5], (bool)i[6], (int)i[0]));
                     }
@@ -62,7 +62,7 @@ namespace flashcards_server.DatabaseManagement
         public List<Set.Set> GetSetsByCreator(User.User user)
         {
             var listOfSets = new List<Set.Set>();
-            var listOfSets_temp = new List<Object[]>();
+            var listOfSetsTemp = new List<Object[]>();
             using (var cmd = new NpgsqlCommand($"SELECT * FROM sets WHERE creator_id = {user.id};", conn))
             {
                 try
@@ -75,10 +75,10 @@ namespace flashcards_server.DatabaseManagement
                         {
                             var temp = new Object[7];
                             output.GetValues(temp);
-                            listOfSets_temp.Add(temp);
+                            listOfSetsTemp.Add(temp);
                         }
                     }
-                    foreach (var i in listOfSets_temp)
+                    foreach (var i in listOfSetsTemp)
                     {
                         listOfSets.Add(new Set.Set((string)i[1], GetUserById((int)i[2]), GetUserById((int)i[3]), (DateTime)i[4], (DateTime)i[5], (bool)i[6], (int)i[0]));
                     }
@@ -99,7 +99,7 @@ namespace flashcards_server.DatabaseManagement
             Set.Set set;
             using (var cmd = new NpgsqlCommand($"SELECT * FROM sets where name='{name}' LIMIT 1;", conn))
             {
-                Object[] set_temp = new Object[7];
+                Object[] setTemp = new Object[7];
                 try
                 {
                     using (var reader = cmd.ExecuteReader())
@@ -108,9 +108,9 @@ namespace flashcards_server.DatabaseManagement
                             throw new NpgsqlException($"(set)No row found by name: {name}");
                         reader.Read();
                         for (int i = 0; i < 7; i++)
-                            set_temp[i] = reader[i];
+                            setTemp[i] = reader[i];
                     }
-                    set = new Set.Set((String)set_temp[1], GetUserById((Int32)set_temp[2]), GetUserById((Int32)set_temp[3]), (DateTime)set_temp[4], (DateTime)set_temp[5], (bool)set_temp[6], (Int32)set_temp[0]);
+                    set = new Set.Set((String)setTemp[1], GetUserById((Int32)setTemp[2]), GetUserById((Int32)setTemp[3]), (DateTime)setTemp[4], (DateTime)setTemp[5], (bool)setTemp[6], (Int32)setTemp[0]);
                 }
                 catch (NpgsqlException)
                 {
@@ -119,7 +119,24 @@ namespace flashcards_server.DatabaseManagement
             }
             return set;
         }
-    
+
+        public Set.Set GetSetById(int id)
+        {
+            var setTemp = new Object[7];
+            using (var cmd = new NpgsqlCommand($"SELECT * FROM sets WHERE id = {id};", conn))
+            {
+                using (var reader = cmd.ExecuteReader())
+                {
+                    if (!reader.HasRows)
+                        throw new NpgsqlException($"No set found by id {id}");
+                    reader.Read();
+                    for (int i = 0; i < 7; i++)
+                        setTemp[i] = reader[i];
+                }
+            }
+            return new Set.Set((String)setTemp[1], GetUserById((Int32)setTemp[2]), GetUserById((Int32)setTemp[3]), (DateTime)setTemp[4], (DateTime)setTemp[5], (bool)setTemp[6], (Int32)setTemp[0]);
+        }
+
         public bool IsSetNameUnique(String name)
         {
             using (var cmd = new NpgsqlCommand($"SELECT COUNT(*) FROM sets WHERE LOWER(sets.name) = LOWER('{name}');", conn))

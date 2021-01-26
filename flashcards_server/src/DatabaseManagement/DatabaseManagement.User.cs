@@ -123,7 +123,7 @@ namespace flashcards_server.DatabaseManagement
                 using (var output = cmd.ExecuteReader())
                 {
                     if (!output.HasRows)
-                        throw new NpgsqlException($"No row found by id {id}");
+                        throw new NpgsqlException($"No user found by id {id}");
                     output.Read();
                     user = new User.User(output[1].ToString(), output[2].ToString(),
                                          output[3].ToString(), output[4].ToString(),
