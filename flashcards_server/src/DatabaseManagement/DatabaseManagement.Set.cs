@@ -70,7 +70,8 @@ namespace flashcards_server.DatabaseManagement
 
                     using (var output = cmd.ExecuteReader())
                     {
-
+                        if (!output.HasRows)
+                            return listOfSets;
                         while (output.Read())
                         {
                             var temp = new Object[7];
@@ -80,7 +81,7 @@ namespace flashcards_server.DatabaseManagement
                     }
                     foreach (var i in listOfSetsTemp)
                     {
-                        listOfSets.Add(new Set.Set((string)i[1], GetUserById((int)i[2]), GetUserById((int)i[3]), (DateTime)i[4], (DateTime)i[5], (bool)i[6], (int)i[0]));
+                        listOfSets.Add(new Set.Set((string)i[1], GetUserById((int)i[2]), GetUserById((int)i[3]), DateTime.Parse(i[4].ToString()), DateTime.Parse(i[5].ToString()), (bool)i[6], (int)i[0]));
                     }
 
                 }
@@ -110,7 +111,7 @@ namespace flashcards_server.DatabaseManagement
                         for (int i = 0; i < 7; i++)
                             setTemp[i] = reader[i];
                     }
-                    set = new Set.Set((String)setTemp[1], GetUserById((Int32)setTemp[2]), GetUserById((Int32)setTemp[3]), (DateTime)setTemp[4], (DateTime)setTemp[5], (bool)setTemp[6], (Int32)setTemp[0]);
+                    set = new Set.Set((String)setTemp[1], GetUserById((Int32)setTemp[2]), GetUserById((Int32)setTemp[3]), DateTime.Parse(setTemp[4].ToString()), DateTime.Parse(setTemp[5].ToString()), (bool)setTemp[6], (Int32)setTemp[0]);
                 }
                 catch (NpgsqlException)
                 {
@@ -134,7 +135,15 @@ namespace flashcards_server.DatabaseManagement
                         setTemp[i] = reader[i];
                 }
             }
-            return new Set.Set((String)setTemp[1], GetUserById((Int32)setTemp[2]), GetUserById((Int32)setTemp[3]), (DateTime)setTemp[4], (DateTime)setTemp[5], (bool)setTemp[6], (Int32)setTemp[0]);
+            return new Set.Set((String)setTemp[1], GetUserById((Int32)setTemp[2]), GetUserById((Int32)setTemp[3]), DateTime.Parse(setTemp[4].ToString()), DateTime.Parse(setTemp[5].ToString()), (bool)setTemp[6], (Int32)setTemp[0]);
+        }
+
+        public void TransferOwnership(Set.Set set, User.User user)
+        {
+            using (var cmd = new NpgsqlCommand($"UPDATE sets SET owner_id = {user.id} WHERE id={set.id};", conn))
+            {
+                cmd.ExecuteNonQuery();
+            }
         }
 
         public bool IsSetNameUnique(String name)

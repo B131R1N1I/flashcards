@@ -28,8 +28,8 @@ CREATE TABLE sets(
 	name 				TEXT UNIQUE NOT NULL,
 	creator_id 			INTEGER NOT NULL,
 	owner_id 			INTEGER NOT NULL,
-	created_date 		TIME NOT NULL,
-	last_modification	TIME NOT NULL,
+	created_date 		TIMESTAMP NOT NULL,
+	last_modification	TIMESTAMP NOT NULL,
 	is_public			BOOLEAN NOT NULL,
 
 	PRIMARY KEY(id),
@@ -70,8 +70,8 @@ CREATE TABLE active_sets(
 CREATE TABLE card_status(
 	card_id				INTEGER NOT NULL,
 	user_id				INTEGER NOT NULL,
-	last_review			TIME NOT NULL,
-	next_review			TIME NOT NULL,
+	last_review			TIMESTAMP NOT NULL,
+	next_review			TIMESTAMP NOT NULL,
 	active				BOOL NOT NULL,
 	difficult			BOOL NOT NULL,
 
@@ -85,6 +85,8 @@ CREATE TABLE card_status(
 -- CREATE EXTENSION pgcrypto;
 
 ALTER user flashcards_app with encrypted password 'fc_app';
-GRANT ALL PRIVILEGES ON TABLE users TO flashcards_app;
-GRANT ALL PRIVILEGES ON DATABASE flashcards to flashcards_app;
+GRANT ALL PRIVILEGES ON TABLE users, sets, cards, active_sets, card_status TO flashcards_app;
+-- GRANT ALL PRIVILEGES ON DATABASE flashcards to flashcards_app;
 GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO flashcards_app;
+GRANT ALL PRIVILEGES ON SCHEMA public TO flashcards_app;
+-- GRANT ALL PRIVILEGES ON DATABASE flashcards TO flashcards_app;
