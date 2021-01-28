@@ -153,5 +153,13 @@ namespace flashcards_server.DatabaseManagement
                 return (Int64)cmd.ExecuteScalar() == 0;
             }
         }
+
+        public void UpdateSetName(Set.Set set, String name)
+        {
+            using (var cmd = new NpgsqlCommand($"UPDATE sets SET name = '{name}' WHERE id = {set.id};", conn))
+            {
+                cmd.ExecuteNonQuery();
+            }
+        }
     }
 }
