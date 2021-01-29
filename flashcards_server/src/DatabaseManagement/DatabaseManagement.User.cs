@@ -6,13 +6,13 @@ namespace flashcards_server.DatabaseManagement
 {
     public partial class DatabaseManagement
     {
-        public event EventHandler<AddedUserEventArgs> UserAddedEventHandler;
+        // public event EventHandler<AddedUserEventArgs> UserAddedEventHandler;
 
-        protected virtual void OnUserAdded(User.User user)
-        {
-            if (UserAddedEventHandler != null)
-                UserAddedEventHandler(this, new AddedUserEventArgs { user = user });
-        }
+        // protected virtual void OnUserAdded(User.User user)
+        // {
+        //     if (UserAddedEventHandler != null)
+        //         UserAddedEventHandler(this, new AddedUserEventArgs { user = user });
+        // }
 
         public void AddUserToDatabase(User.User user)
         {
