@@ -141,5 +141,20 @@ namespace flashcards_server.Set
             this.lastModificationDate = lastModification;
             this.isPublic = isPublic;
         }
+
+        public override string ToString()
+        {
+            return $"Set [{id}: ({name}, {creator}, {owner}, {createdDate}, {lastModificationDate}, {isPublic})]";
+        }
+
+        public override bool Equals(object obj)
+        {
+            return (obj is Set && (((Set)obj).name == this.name && ((Set)obj).id == ((Set)this).id));
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
     }
 }
