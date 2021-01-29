@@ -161,5 +161,13 @@ namespace flashcards_server.DatabaseManagement
                 cmd.ExecuteNonQuery();
             }
         }
+
+        public void UpdateSetIsPublic(Set.Set set, bool isPublic)
+        {
+            using (var cmd = new NpgsqlCommand($"UPDATE sets SET is_public = {isPublic} WHERE id = {set.id};", conn))
+            {
+                cmd.ExecuteNonQuery();
+            }
+        }
     }
 }
