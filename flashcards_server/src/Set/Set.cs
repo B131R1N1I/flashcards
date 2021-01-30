@@ -5,6 +5,7 @@ namespace flashcards_server.Set
     public partial class Set
     {
         public event EventHandler<NameEventArgs> NameChangedEventHandler;
+
         public event EventHandler<OwnerEventArgs> OwnerChangedEventHandler;
 
         public event EventHandler<DateEventArgs> LastModificationDateChanged;
@@ -17,7 +18,7 @@ namespace flashcards_server.Set
                 NameChangedEventHandler(this, new NameEventArgs { name = name });
         }
 
-        protected virtual void OnOwnerChanged(User.User user)
+        protected virtual void OnOwnerChanged(uint user)
         {
             if (OwnerChangedEventHandler != null)
                 OwnerChangedEventHandler(this, new OwnerEventArgs { user = user });
@@ -28,6 +29,7 @@ namespace flashcards_server.Set
             if (LastModificationDateChanged != null)
                 LastModificationDateChanged(this, new DateEventArgs { date = date });
         }
+
         protected void OnIsPublicChanged(bool isPublic)
         {
             if (IsPublicChanged != null)
@@ -56,11 +58,11 @@ namespace flashcards_server.Set
             }
         }
 
-        public readonly User.User creator;
+        public readonly uint creator;
 
-        private User.User _owner;
+        private uint _owner;
 
-        public User.User owner
+        public uint owner
         {
             get => _owner;
             set
@@ -72,7 +74,7 @@ namespace flashcards_server.Set
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("Cannot change owner to user named: " + value.name);
+                    Console.WriteLine("Cannot change owner to user with id: " + value);
                     Console.WriteLine(e.Message);
                 }
             }
@@ -121,7 +123,7 @@ namespace flashcards_server.Set
             }
         }
 
-        public Set(string name, User.User creator, User.User owner, DateTime createdDate, DateTime lastModification, bool isPublic, uint? id = null)
+        public Set(string name, uint creator, uint owner, DateTime createdDate, DateTime lastModification, bool isPublic, uint? id = null)
         {
             this.id = id;
             this.name = name;
@@ -131,7 +133,8 @@ namespace flashcards_server.Set
             this.lastModificationDate = lastModification;
             this.isPublic = isPublic;
         }
-        public Set(string name, User.User creator, User.User owner, DateTime createdDate, DateTime lastModification, bool isPublic, int id)
+
+        public Set(string name, uint creator, uint owner, DateTime createdDate, DateTime lastModification, bool isPublic, int id)
         {
             this.id = uint.Parse(id.ToString());
             this.name = name;

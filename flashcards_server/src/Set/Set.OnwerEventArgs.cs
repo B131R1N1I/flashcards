@@ -6,7 +6,7 @@ namespace flashcards_server.Set
 	{
 		public class OwnerEventArgs : EventArgs
 		{
-			public User.User user { get; set;}
+			public uint user { get; set;}
 		}
 	}
 
