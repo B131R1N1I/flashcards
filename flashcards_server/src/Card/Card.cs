@@ -11,6 +11,8 @@ namespace flashcards_server.Card
 
         public event EventHandler<ImageEventArgs> ImageChangedEventHandler;
 
+        public event EventHandler<InSetEventArgs> InSetChangedEventHandler;
+
         protected virtual void OnQuestionChanged(string question)
         {
             if (QuestionChangedEventHandler != null)
@@ -27,6 +29,12 @@ namespace flashcards_server.Card
         {
             if (ImageChangedEventHandler != null)
                 ImageChangedEventHandler(this, new ImageEventArgs { image = image });
+        }
+
+        protected virtual void OnInSetChanged(uint inSet)
+        {
+            if (InSetChangedEventHandler != null)
+                InSetChangedEventHandler(this, new InSetEventArgs { inSet = inSet });
         }
 
         public readonly uint? id;
@@ -91,8 +99,25 @@ namespace flashcards_server.Card
                 }
             }
         }
-    
-    
 
+        private uint _inSet;
+
+        public uint inSet
+        {
+            get => _inSet;
+            set
+            {
+                try
+                {
+                    OnInSetChanged(value);
+                    _inSet = value;
+                }
+                catch (Exception e)
+                {
+                    System.Console.WriteLine("Canot change in_set property");
+                    System.Console.WriteLine(e.Message);
+                }
+            }
+        }
     }
 }
