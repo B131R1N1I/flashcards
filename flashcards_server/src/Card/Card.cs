@@ -120,11 +120,15 @@ namespace flashcards_server.Card
             }
         }
 
-        public Card(string answer, string question, Byte[] image, uint inSet)
+        public Card(string answer, string question, Byte[] image, uint inSet, uint id)
         {
+            this.id = id;
             this._answer = answer;
             this.question = question;
-            this.image = image;
+            if (image is null)
+                this.image = new byte[0];
+            else
+                this.image = image;
             this.inSet = inSet;
             // OnCardCreated(this);
         }
