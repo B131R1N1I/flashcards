@@ -119,5 +119,14 @@ namespace flashcards_server.Card
                 }
             }
         }
+
+        public Card(string answer, string question, Byte[] image, uint inSet)
+        {
+            this._answer = answer;
+            this.question = question;
+            this.image = image;
+            this.inSet = inSet;
+            // OnCardCreated(this);
+        }
     }
 }
