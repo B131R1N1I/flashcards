@@ -5,6 +5,23 @@ namespace flashcards_server.DatabaseManagement
 {
     partial class DatabaseManagement
     {
+
+        public void AddCardToDatabase(Card.Card card)
+        {
+            using (var cmd = new NpgsqlCommand("INSERT INTO cards (question, answer, picture, in_set)" +
+            // $"VALUES ('{card.question}', '{card.answer}', @Image, {card.inSet});", conn))
+            $"VALUES ('{card.question}', '{card.answer}', null, {card.inSet});", conn))
+
+            {
+                // NpgsqlParameter parameter = cmd.CreateParameter();
+                // parameter.ParameterName = "@Image";
+                // parameter.NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Bytea;
+                // parameter.Value = card.image;
+                // cmd.Parameters.Add(parameter);
+
+                cmd.ExecuteNonQuery();
+            }
+        }
         public Card.Card GetCardByID(uint id)
         {
             using (var cmd = new NpgsqlCommand($"SELECT id, question, answer, picture, in_set, picture is null AS picture_is_null FROM cards WHERE id = {id};", conn))
