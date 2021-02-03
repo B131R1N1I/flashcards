@@ -10,14 +10,15 @@ namespace flashcards_server.DatabaseManagement
         {
             using (var cmd = new NpgsqlCommand("INSERT INTO cards (question, answer, picture, in_set)" +
             // $"VALUES ('{card.question}', '{card.answer}', @Image, {card.inSet});", conn))
-            $"VALUES ('{card.question}', '{card.answer}', null, {card.inSet});", conn))
-
+            $"VALUES ('{card.question}', '{card.answer}', @Image, {card.inSet});", conn))
+                
             {
-                // NpgsqlParameter parameter = cmd.CreateParameter();
-                // parameter.ParameterName = "@Image";
-                // parameter.NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Bytea;
-                // parameter.Value = card.image;
-                // cmd.Parameters.Add(parameter);
+                System.Console.WriteLine(cmd.Parameters);
+                NpgsqlParameter parameter = cmd.CreateParameter();
+                parameter.ParameterName = "@Image";
+                parameter.NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Bytea;
+                parameter.Value = card.image;
+                cmd.Parameters.Add(parameter);
 
                 cmd.ExecuteNonQuery();
             }
