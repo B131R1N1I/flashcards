@@ -125,9 +125,9 @@ namespace flashcards_server.DatabaseManagement
                     if (!output.HasRows)
                         throw new NpgsqlException($"No user found by id {id}");
                     output.Read();
-                    user = new User.User(output[1].ToString(), output[2].ToString(),
-                                         output[3].ToString(), output[4].ToString(),
-                                         output[5].ToString(), (Int32)output[0]);
+                    user = new User.User(output.GetString(1), output.GetString(2),
+                                         output.GetString(3), output.GetString(4),
+                                         output.GetString(5), output.GetInt32(0));
 
                 }
                 return user;
@@ -144,9 +144,9 @@ namespace flashcards_server.DatabaseManagement
                     if (!output.HasRows)
                         throw new NpgsqlException($"No row found by username {username}");
                     output.Read();
-                    user = new User.User(output[1].ToString(), output[2].ToString(),
-                                         output[3].ToString(), output[4].ToString(),
-                                         output[5].ToString(), (Int32)output[0]);
+                    user = new User.User(output.GetString(1), output.GetString(2),
+                                         output.GetString(3), output.GetString(4),
+                                         output.GetString(5), output.GetInt32(0));
                 }
                 return user;
             }
@@ -162,9 +162,9 @@ namespace flashcards_server.DatabaseManagement
                     if (!output.HasRows)
                         throw new NpgsqlException($"No row found by email {email}");
                     output.Read();
-                    user = new User.User(output[1].ToString(), output[2].ToString(),
-                                         output[3].ToString(), output[4].ToString(),
-                                         output[5].ToString(), (Int32)output[0]);
+                    user = new User.User(output.GetString(1), output.GetString(2),
+                                         output.GetString(3), output.GetString(4),
+                                         output.GetString(5), output.GetInt32(0));
                 }
                 return user;
             }
