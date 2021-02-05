@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace flashcards_server.Set
 {
@@ -134,16 +135,9 @@ namespace flashcards_server.Set
             this.isPublic = isPublic;
         }
 
-        public Set(string name, uint creator, uint owner, DateTime createdDate, DateTime lastModification, bool isPublic, int id)
-        {
-            this.id = uint.Parse(id.ToString());
-            this.name = name;
-            this.creator = creator;
-            this.owner = owner;
-            this.createdDate = createdDate;
-            this.lastModificationDate = lastModification;
-            this.isPublic = isPublic;
-        }
+        public Set(string name, uint creator, uint owner, DateTime createdDate, DateTime lastModification, bool isPublic, int id) :
+        this(name, creator, owner, createdDate, lastModification, isPublic, (uint?)id)
+        { }
 
         public override string ToString()
         {
