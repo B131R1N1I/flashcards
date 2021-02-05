@@ -165,16 +165,7 @@ namespace flashcards_server.User
             OnUserCreated(this);
         }
 
-        public User(string username, string email, string name, string surname, string password, int id)
-        {
-            this.id = uint.Parse(id.ToString());
-            this._username = username;
-            this._email = email;
-            this._name = name;
-            this._surname = surname;
-            this._password = password;
-            OnUserCreated(this);
-        }
+        public User(string username, string email, string name, string surname, string password, int id) : this(username, email, name, surname, password, (uint?)id) { }
 
         public void RegisterUser(DatabaseManagement.DatabaseManagement database)
         {
@@ -182,7 +173,7 @@ namespace flashcards_server.User
                 throw new Npgsql.NpgsqlException("CONNECTION IS NOT OPEN");
             try
             {
-            database.AddUserToDatabase(this);
+                database.AddUserToDatabase(this);
             }
             catch (ArgumentException)
             {
