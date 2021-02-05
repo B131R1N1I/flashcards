@@ -190,9 +190,6 @@ namespace flashcards_server.User
             }
         }
 
-        /// <sumary>
-        /// GetUser methods serches for user in database and returns if any matches
-        /// </sumary> 
         static public User GetUser(/* args */)
         {
             throw new NotImplementedException("Connection with database has not been created yet");
