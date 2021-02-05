@@ -37,7 +37,7 @@ namespace flashcards_server.DatabaseManagement
                     {
                         var temp = new Object[7];
                         reader.GetValues(temp);
-                        listOfSets.Add(new Set.Set((String)reader[1], Convert.ToUInt32(reader.GetInt32(2)), Convert.ToUInt32(reader.GetInt32(3)), DateTime.Parse(reader[4].ToString()), DateTime.Parse(reader[5].ToString()), (bool)reader[6], (Int32)reader[0]));
+                        listOfSets.Add(new Set.Set(reader.GetString(1), Convert.ToUInt32(reader.GetInt32(2)), Convert.ToUInt32(reader.GetInt32(3)), reader.GetDateTime(4), reader.GetDateTime(5), reader.GetBoolean(6), reader.GetInt32(0)));
 
                     }
                 }
@@ -58,7 +58,7 @@ namespace flashcards_server.DatabaseManagement
                     {
                         var temp = new Object[7];
                         reader.GetValues(temp);
-                        listOfSets.Add(new Set.Set((String)reader[1], Convert.ToUInt32(reader.GetInt32(2)), Convert.ToUInt32(reader.GetInt32(3)), DateTime.Parse(reader[4].ToString()), DateTime.Parse(reader[5].ToString()), (bool)reader[6], (Int32)reader[0]));
+                        listOfSets.Add(new Set.Set(reader.GetString(1), Convert.ToUInt32(reader.GetInt32(2)), Convert.ToUInt32(reader.GetInt32(3)), reader.GetDateTime(4), reader.GetDateTime(5), reader.GetBoolean(6), reader.GetInt32(0)));
 
                     }
                 }
@@ -70,14 +70,12 @@ namespace flashcards_server.DatabaseManagement
         {
             using (var cmd = new NpgsqlCommand($"SELECT * FROM sets where name='{name}' LIMIT 1;", conn))
             {
-                Object[] setTemp = new Object[7];
-
                 using (var reader = cmd.ExecuteReader())
                 {
                     if (!reader.HasRows)
                         throw new NpgsqlException($"(set)No row found by name: {name}");
                     reader.Read();
-                    return new Set.Set((String)reader[1], Convert.ToUInt32(reader.GetInt32(2)), Convert.ToUInt32(reader.GetInt32(3)), DateTime.Parse(reader[4].ToString()), DateTime.Parse(reader[5].ToString()), (bool)reader[6], (Int32)reader[0]);
+                    return new Set.Set(reader.GetString(1), Convert.ToUInt32(reader.GetInt32(2)), Convert.ToUInt32(reader.GetInt32(3)), reader.GetDateTime(4), reader.GetDateTime(5), reader.GetBoolean(6), reader.GetInt32(0));
                 }
             }
         }
@@ -91,7 +89,7 @@ namespace flashcards_server.DatabaseManagement
                     if (!reader.HasRows)
                         throw new NpgsqlException($"No set found by id {id}");
                     reader.Read();
-                    return new Set.Set((String)reader[1], Convert.ToUInt32(reader.GetInt32(2)), Convert.ToUInt32(reader.GetInt32(3)), DateTime.Parse(reader[4].ToString()), DateTime.Parse(reader[5].ToString()), (bool)reader[6], (Int32)reader[0]);
+                    return new Set.Set(reader.GetString(1), Convert.ToUInt32(reader.GetInt32(2)), Convert.ToUInt32(reader.GetInt32(3)), reader.GetDateTime(4), reader.GetDateTime(5), reader.GetBoolean(6), reader.GetInt32(0));
                 }
             }
         }
