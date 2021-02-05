@@ -10,11 +10,8 @@ namespace flashcards_server.DatabaseManagement
         public void AddCardToDatabase(Card.Card card)
         {
             using (var cmd = new NpgsqlCommand("INSERT INTO cards (question, answer, picture, in_set)" +
-            // $"VALUES ('{card.question}', '{card.answer}', @Image, {card.inSet});", conn))
             $"VALUES ('{card.question}', '{card.answer}', @Image, {card.inSet});", conn))
-
             {
-                System.Console.WriteLine(cmd.Parameters);
                 NpgsqlParameter parameter = cmd.CreateParameter();
                 parameter.ParameterName = "@Image";
                 parameter.NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Bytea;
@@ -25,6 +22,27 @@ namespace flashcards_server.DatabaseManagement
             }
         }
 
+        public void UpdateCardQuestion(Card.Card card, string question)
+        {
+            using (var cmd = new NpgsqlCommand($"UPDATE cards SET question = '{question}' WHERE id={card.id};", conn))
+            {
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public void UpdateCardAnswer(Card.Card card, string answer)
+        {
+            using (var cmd = new NpgsqlCommand($"UPDATE cards SET answer = '{answer}' WHERE id={card.id};", conn))
+            {
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public void UpdateCardPicture(Card.Card card, byte[] picture)
+        {
+            throw new NotImplementedException();
+        }
+
         public Card.Card GetCardByID(uint id)
         {
             using (var cmd = new NpgsqlCommand($"SELECT id, question, answer, picture, in_set, picture FROM cards WHERE id = {id};", conn))
@@ -32,8 +50,7 @@ namespace flashcards_server.DatabaseManagement
                 using (var reader = cmd.ExecuteReader())
                 {
                     reader.Read();
-                    // if (reader.)
-                    if (!(bool)reader.GetValue(5))
+                    if (reader.GetValue(5) != null)
                     {
                         var len = reader.GetBytes(3, 0, null, 0, 0);
                         var buffer = new Byte[len];
