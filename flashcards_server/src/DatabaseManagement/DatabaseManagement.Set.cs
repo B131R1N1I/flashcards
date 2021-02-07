@@ -66,6 +66,23 @@ namespace flashcards_server.DatabaseManagement
             return listOfSets;
         }
 
+        public void MakeSetActive(User.User user, Set.Set set)
+        {
+            using (var cmd = new NpgsqlCommand($"DELETE FROM active_sets WHERE user_id={user.id} AND set_id={set.id}; " +
+                                               $"INSERT INTO active_sets (user_id, set_id) VALUES ({user.id}, {set.id});", conn))
+            {
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public void MakeSetInactive(User.User user, Set.Set set)
+        {
+            using (var cmd = new NpgsqlCommand($"DELETE FROM active_sets WHERE user_id={user.id} AND set_id={set.id}; ", conn))
+            {
+                cmd.ExecuteNonQuery();
+            }
+        }
+
         // public List<Set.Set> GetActiveSetsByCreator(User.User user)
         // {
         //     var listOfSets = new List<Set.Set>();
@@ -118,19 +135,6 @@ namespace flashcards_server.DatabaseManagement
         public void TransferOwnership(Set.Set set, User.User user)
         {
             using (var cmd = new NpgsqlCommand($"UPDATE sets SET owner_id = {user.id} WHERE id={set.id};", conn))
-            {
-                cmd.ExecuteNonQuery();
-            }
-        }
-
-        public void MakeSetPaused(Set.Set set, User.User user)
-        {
-            using (var cmd = new NpgsqlCommand($"DELETE FROM active_sets WHERE user_id = {user.id} AND set_id = {set.id}", conn))
-            {
-                cmd.ExecuteNonQuery();
-            }
-
-            using (var cmd = new NpgsqlCommand($"INSERT INTO active_sets (user_id, set_id, is_paused) VALUES ({user.id}, {set.id}, true);", conn))
             {
                 cmd.ExecuteNonQuery();
             }
