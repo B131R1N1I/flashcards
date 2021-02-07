@@ -56,7 +56,6 @@ CREATE TABLE cards(
 CREATE TABLE active_sets(
 	user_id				INTEGER NOT NULL,
 	set_id				INTEGER NOT NULL,
-	is_paused			BOOLEAN NOT NULL,
 
 	CONSTRAINT id_user
 		FOREIGN KEY(user_id)
