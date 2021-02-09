@@ -119,18 +119,7 @@ namespace flashcards_server.DatabaseManagement
         {
             using (var cmd = new NpgsqlCommand($"SELECT * FROM users WHERE id = {id} LIMIT 1;", conn))
             {
-                User.User user;
-                using (var output = cmd.ExecuteReader())
-                {
-                    if (!output.HasRows)
-                        throw new NpgsqlException($"No user found by id {id}");
-                    output.Read();
-                    user = new User.User(output.GetString(1), output.GetString(2),
-                                         output.GetString(3), output.GetString(4),
-                                         output.GetString(5), output.GetInt32(0));
-
-                }
-                return user;
+                return _GetUserByCmd(cmd);
             }
         }
 
@@ -138,17 +127,7 @@ namespace flashcards_server.DatabaseManagement
         {
             using (var cmd = new NpgsqlCommand($"SELECT * FROM users WHERE username = '{username}' LIMIT 1;", conn))
             {
-                User.User user;
-                using (var output = cmd.ExecuteReader())
-                {
-                    if (!output.HasRows)
-                        throw new NpgsqlException($"No row found by username {username}");
-                    output.Read();
-                    user = new User.User(output.GetString(1), output.GetString(2),
-                                         output.GetString(3), output.GetString(4),
-                                         output.GetString(5), output.GetInt32(0));
-                }
-                return user;
+                return _GetUserByCmd(cmd);
             }
         }
 
@@ -156,17 +135,21 @@ namespace flashcards_server.DatabaseManagement
         {
             using (var cmd = new NpgsqlCommand($"SELECT * FROM users WHERE email = '{email}' LIMIT 1;", conn))
             {
-                User.User user;
-                using (var output = cmd.ExecuteReader())
-                {
-                    if (!output.HasRows)
-                        throw new NpgsqlException($"No row found by email {email}");
-                    output.Read();
-                    user = new User.User(output.GetString(1), output.GetString(2),
-                                         output.GetString(3), output.GetString(4),
-                                         output.GetString(5), output.GetInt32(0));
-                }
-                return user;
+
+                return _GetUserByCmd(cmd);
+            }
+        }
+
+        public User.User _GetUserByCmd(NpgsqlCommand cmd)
+        {
+            using (var output = cmd.ExecuteReader())
+            {
+                if (!output.HasRows)
+                    throw new NpgsqlException($"No User found");
+                output.Read();
+                return new User.User(output.GetString(1), output.GetString(2),
+                                     output.GetString(3), output.GetString(4),
+                                     output.GetString(5), output.GetInt32(0));
             }
         }
 
@@ -183,6 +166,6 @@ namespace flashcards_server.DatabaseManagement
                 }
             }
         }
-        
+
     }
 }
