@@ -10,8 +10,8 @@ namespace flashcards_server.DatabaseManagement
         public void AddSetToDatabase(Set.Set set)
         {
             using (var cmd = new NpgsqlCommand($"INSERT INTO sets (name, creator_id, owner_id, created_date, last_modification, is_public) " +
-            $"VALUES ('{set.name}', {set.creator}, {set.owner}, '{(NpgsqlTypes.NpgsqlDateTime)set.createdDate}', " +
-            $"'{(NpgsqlTypes.NpgsqlDateTime)set.lastModificationDate}', {set.isPublic});", conn))
+                                               $"VALUES ('{set.name}', {set.creator}, {set.owner}, '{(NpgsqlTypes.NpgsqlDateTime)set.createdDate}', " +
+                                               $"'{(NpgsqlTypes.NpgsqlDateTime)set.lastModificationDate}', {set.isPublic});", conn))
             {
                 try
                 {
@@ -24,6 +24,7 @@ namespace flashcards_server.DatabaseManagement
                 }
             }
         }
+
         public List<Set.Set> GetSetsByOwner(User.User user)
         {
             using (var cmd = new NpgsqlCommand($"SELECT * FROM sets WHERE owner_id = {user.id};", conn))
@@ -38,7 +39,8 @@ namespace flashcards_server.DatabaseManagement
 
         public List<Set.Set> GetActiveSetsforUser(User.User user)
         {
-            using (var cmd = new NpgsqlCommand($"SELECT sets.* FROM sets JOIN active_sets AS acts ON sets.id = acts.set_id WHERE acts.user_id = {user.id};", conn))
+            using (var cmd = new NpgsqlCommand($"SELECT sets.* FROM sets JOIN active_sets AS acts ON sets.id = acts.set_id " +
+                                               $"WHERE acts.user_id = {user.id};", conn))
             {
                 return _GetListOfSetsByCmd(cmd);
             }
@@ -65,13 +67,7 @@ namespace flashcards_server.DatabaseManagement
         {
             using (var cmd = new NpgsqlCommand($"SELECT * FROM sets where name='{name}' LIMIT 1;", conn))
             {
-                using (var reader = cmd.ExecuteReader())
-                {
-                    if (!reader.HasRows)
-                        throw new NpgsqlException($"(set)No row found by name: {name}");
-                    reader.Read();
-                    return new Set.Set(reader.GetString(1), Convert.ToUInt32(reader.GetInt32(2)), Convert.ToUInt32(reader.GetInt32(3)), reader.GetDateTime(4), reader.GetDateTime(5), reader.GetBoolean(6), reader.GetInt32(0));
-                }
+                return _GetSetByCmd(cmd);
             }
         }
 
@@ -79,13 +75,7 @@ namespace flashcards_server.DatabaseManagement
         {
             using (var cmd = new NpgsqlCommand($"SELECT * FROM sets WHERE id = {id};", conn))
             {
-                using (var reader = cmd.ExecuteReader())
-                {
-                    if (!reader.HasRows)
-                        throw new NpgsqlException($"No set found by id {id}");
-                    reader.Read();
-                    return new Set.Set(reader.GetString(1), Convert.ToUInt32(reader.GetInt32(2)), Convert.ToUInt32(reader.GetInt32(3)), reader.GetDateTime(4), reader.GetDateTime(5), reader.GetBoolean(6), reader.GetInt32(0));
-                }
+                return _GetSetByCmd(cmd);
             }
         }
 
@@ -110,18 +100,31 @@ namespace flashcards_server.DatabaseManagement
             var listOfSets = new List<Set.Set>();
             using (var reader = cmd.ExecuteReader())
             {
-
                 if (!reader.HasRows)
                     return listOfSets;
                 while (reader.Read())
                 {
                     var temp = new Object[7];
                     reader.GetValues(temp);
-                    listOfSets.Add(new Set.Set(reader.GetString(1), Convert.ToUInt32(reader.GetInt32(2)), Convert.ToUInt32(reader.GetInt32(3)), reader.GetDateTime(4), reader.GetDateTime(5), reader.GetBoolean(6), reader.GetInt32(0)));
-
+                    listOfSets.Add(new Set.Set(reader.GetString(1), Convert.ToUInt32(reader.GetInt32(2)),
+                                               Convert.ToUInt32(reader.GetInt32(3)), reader.GetDateTime(4),
+                                               reader.GetDateTime(5), reader.GetBoolean(6), reader.GetInt32(0)));
                 }
             }
             return listOfSets;
+        }
+
+        private Set.Set _GetSetByCmd(NpgsqlCommand cmd)
+        {
+            using (var reader = cmd.ExecuteReader())
+            {
+                if (!reader.HasRows)
+                    throw new NpgsqlException("No set found");
+                reader.Read();
+                return new Set.Set(reader.GetString(1), Convert.ToUInt32(reader.GetInt32(2)),
+                                   Convert.ToUInt32(reader.GetInt32(3)), reader.GetDateTime(4),
+                                   reader.GetDateTime(5), reader.GetBoolean(6), reader.GetInt32(0));
+            }
         }
 
         public void UpdateSetName(Set.Set set, String name)
