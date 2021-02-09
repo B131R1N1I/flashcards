@@ -5,6 +5,8 @@ namespace flashcards_server.Set
 {
     public partial class Set
     {
+        public static event EventHandler SetCreatedEventHandler;
+
         public event EventHandler<NameEventArgs> NameChangedEventHandler;
 
         public event EventHandler<OwnerEventArgs> OwnerChangedEventHandler;
@@ -12,6 +14,12 @@ namespace flashcards_server.Set
         public event EventHandler<DateEventArgs> LastModificationDateChanged;
 
         public event EventHandler<IsPublicEventArgs> IsPublicChanged;
+
+        protected virtual void OnSetCreated(Set set)
+        {
+            if (SetCreatedEventHandler != null)
+                SetCreatedEventHandler(set, new EventArgs());
+        }
 
         protected virtual void OnNameChanged(string name)
         {
@@ -133,6 +141,7 @@ namespace flashcards_server.Set
             this.createdDate = createdDate;
             this.lastModificationDate = lastModification;
             this.isPublic = isPublic;
+            OnSetCreated(this);
         }
 
         public Set(string name, uint creator, uint owner, DateTime createdDate, DateTime lastModification, bool isPublic, int id) :
