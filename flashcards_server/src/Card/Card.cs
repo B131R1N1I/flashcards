@@ -5,6 +5,8 @@ namespace flashcards_server.Card
 {
     public partial class Card
     {
+        public static event EventHandler CardCreatedEventHandler;
+
         public event EventHandler<QuestionEventArgs> QuestionChangedEventHandler;
 
         public event EventHandler<AnswerEventArgs> AnswerChangedEventHandler;
@@ -12,6 +14,12 @@ namespace flashcards_server.Card
         public event EventHandler<ImageEventArgs> ImageChangedEventHandler;
 
         public event EventHandler<InSetEventArgs> InSetChangedEventHandler;
+
+        protected virtual void OnCardCreated(Card card)
+        {
+            if (CardCreatedEventHandler != null)
+                CardCreatedEventHandler(card, new EventArgs());
+        }
 
         protected virtual void OnQuestionChanged(string question)
         {
@@ -130,7 +138,7 @@ namespace flashcards_server.Card
             else
                 this.image = image;
             this.inSet = inSet;
-            // OnCardCreated(this);
+            OnCardCreated(this);
         }
     }
 }
