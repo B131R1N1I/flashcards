@@ -41,58 +41,46 @@ namespace flashcards_server.DatabaseManagement
         {
             using (var cmd = new NpgsqlCommand($"SELECT sets.* FROM sets JOIN active_sets AS acts ON sets.id = acts.set_id " +
                                                $"WHERE acts.user_id = {user.id};", conn))
-            {
                 return _GetListOfSetsByCmd(cmd);
-            }
         }
 
         public void MakeSetActive(User.User user, Set.Set set)
         {
             using (var cmd = new NpgsqlCommand($"DELETE FROM active_sets WHERE user_id={user.id} AND set_id={set.id}; " +
                                                $"INSERT INTO active_sets (user_id, set_id) VALUES ({user.id}, {set.id});", conn))
-            {
                 cmd.ExecuteNonQuery();
-            }
+
         }
 
         public void MakeSetInactive(User.User user, Set.Set set)
         {
             using (var cmd = new NpgsqlCommand($"DELETE FROM active_sets WHERE user_id={user.id} AND set_id={set.id}; ", conn))
-            {
                 cmd.ExecuteNonQuery();
-            }
+
         }
 
         public Set.Set GetSetByName(String name)
         {
             using (var cmd = new NpgsqlCommand($"SELECT * FROM sets where name='{name}' LIMIT 1;", conn))
-            {
                 return _GetSetByCmd(cmd);
-            }
         }
 
         public Set.Set GetSetById(int id)
         {
             using (var cmd = new NpgsqlCommand($"SELECT * FROM sets WHERE id = {id};", conn))
-            {
                 return _GetSetByCmd(cmd);
-            }
         }
 
         public void TransferOwnership(Set.Set set, User.User user)
         {
             using (var cmd = new NpgsqlCommand($"UPDATE sets SET owner_id = {user.id} WHERE id={set.id};", conn))
-            {
                 cmd.ExecuteNonQuery();
-            }
         }
 
         public bool IsSetNameUnique(String name)
         {
             using (var cmd = new NpgsqlCommand($"SELECT COUNT(*) FROM sets WHERE LOWER(sets.name) = LOWER('{name}');", conn))
-            {
                 return (Int64)cmd.ExecuteScalar() == 0;
-            }
         }
 
         private List<Set.Set> _GetListOfSetsByCmd(NpgsqlCommand cmd)
