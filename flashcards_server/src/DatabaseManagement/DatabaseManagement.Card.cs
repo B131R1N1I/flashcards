@@ -1,6 +1,8 @@
 using System;
 using Npgsql;
 using System.Collections.Generic;
+using System.IO;
+using System.Drawing;
 
 namespace flashcards_server.DatabaseManagement
 {
@@ -15,7 +17,9 @@ namespace flashcards_server.DatabaseManagement
                 NpgsqlParameter parameter = cmd.CreateParameter();
                 parameter.ParameterName = "@Image";
                 parameter.NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Bytea;
-                parameter.Value = card.image;
+                var converter = new ImageConverter();
+
+                parameter.Value = (byte[])converter.ConvertTo(card.image, typeof(byte[]));
                 cmd.Parameters.Add(parameter);
 
                 cmd.ExecuteNonQuery();
@@ -25,22 +29,23 @@ namespace flashcards_server.DatabaseManagement
         public void UpdateCardQuestion(Card.Card card, string question)
         {
             using (var cmd = new NpgsqlCommand($"UPDATE cards SET question = '{question}' WHERE id={card.id};", conn))
-            {
                 cmd.ExecuteNonQuery();
-            }
         }
 
         public void UpdateCardAnswer(Card.Card card, string answer)
         {
             using (var cmd = new NpgsqlCommand($"UPDATE cards SET answer = '{answer}' WHERE id={card.id};", conn))
-            {
                 cmd.ExecuteNonQuery();
-            }
         }
 
         public void UpdateCardPicture(Card.Card card, byte[] picture)
         {
-            throw new NotImplementedException();
+            using (var cmd = new NpgsqlCommand($"UPDATE cards SET picture = @Image WHERE id = {card.id};", conn))
+            {
+                NpgsqlParameter parameter = cmd.CreateParameter();
+                parameter.ParameterName = "@Image";
+                parameter.NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Bytea;
+            }
         }
 
         public Card.Card GetCardByID(uint id)
@@ -52,10 +57,11 @@ namespace flashcards_server.DatabaseManagement
                     reader.Read();
                     if (reader.GetValue(5) != null)
                     {
-                        var len = reader.GetBytes(3, 0, null, 0, 0);
-                        var buffer = new Byte[len];
-                        reader.GetBytes(3, 0, buffer, 0, (int)len);
-                        return new Card.Card(reader.GetString(2), reader.GetString(1), buffer, (uint)reader.GetInt32(4), (uint)reader.GetInt32(0));
+                        var imageBytes = (byte[])reader.GetValue(3);
+                        var ms = new MemoryStream(imageBytes);
+                        var bmap = new Bitmap(ms);
+
+                        return new Card.Card(reader.GetString(2), reader.GetString(1), bmap, (uint)reader.GetInt32(4), (uint)reader.GetInt32(0));
                     }
                     else
                         return new Card.Card(reader.GetString(2), reader.GetString(1), null, (uint)reader.GetInt32(4), (uint)reader.GetInt32(0));
@@ -73,12 +79,11 @@ namespace flashcards_server.DatabaseManagement
                 using (var reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
-
                     {
-                        var len = reader.GetBytes(3, 0, null, 0, 0);
-                        var buffer = new Byte[len];
-                        reader.GetBytes(3, 0, buffer, 0, (int)len);
-                        listOfCards.Add(new Card.Card(reader.GetString(2), reader.GetString(1), buffer, (uint)reader.GetInt32(4), (uint)reader.GetInt32(0)));
+                        var imageBytes = (byte[])reader.GetValue(3);
+                        var ms = new MemoryStream(imageBytes);
+                        var bmap = new Bitmap(ms);
+                        listOfCards.Add(new Card.Card(reader.GetString(2), reader.GetString(1), bmap, (uint)reader.GetInt32(4), (uint)reader.GetInt32(0)));
                     }
                     return listOfCards;
                 }
