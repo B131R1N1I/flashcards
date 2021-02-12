@@ -1,5 +1,5 @@
 using System;
-
+using System.Drawing;
 
 namespace flashcards_server.Card
 {
@@ -33,7 +33,7 @@ namespace flashcards_server.Card
                 AnswerChangedEventHandler(question, new AnswerEventArgs { answer = question });
         }
 
-        protected virtual void OnImageChanged(Byte[] image)
+        protected virtual void OnImageChanged(Bitmap image)
         {
             if (ImageChangedEventHandler != null)
                 ImageChangedEventHandler(this, new ImageEventArgs { image = image });
@@ -88,9 +88,9 @@ namespace flashcards_server.Card
             }
         }
 
-        private Byte[] _image;
+        private Bitmap _image;
 
-        public Byte[] image
+        public Bitmap image
         {
             get => _image;
             set
@@ -128,15 +128,12 @@ namespace flashcards_server.Card
             }
         }
 
-        public Card(string answer, string question, Byte[] image, uint inSet, uint id)
+        public Card(string answer, string question, Bitmap image, uint inSet, uint id)
         {
             this.id = id;
             this._answer = answer;
             this.question = question;
-            if (image is null)
-                this.image = new byte[0];
-            else
-                this.image = image;
+            this.image = image;
             this.inSet = inSet;
             OnCardCreated(this);
         }
