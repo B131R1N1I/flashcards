@@ -17,9 +17,8 @@ namespace flashcards_server.DatabaseManagement
                 NpgsqlParameter parameter = cmd.CreateParameter();
                 parameter.ParameterName = "@Image";
                 parameter.NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Bytea;
-                var converter = new ImageConverter();
 
-                parameter.Value = (byte[])converter.ConvertTo(card.image, typeof(byte[]));
+                parameter.Value = ConvertImageToBytes(card.image);
                 cmd.Parameters.Add(parameter);
 
                 cmd.ExecuteNonQuery();
@@ -38,13 +37,17 @@ namespace flashcards_server.DatabaseManagement
                 cmd.ExecuteNonQuery();
         }
 
-        public void UpdateCardPicture(Card.Card card, byte[] picture)
+        public void UpdateCardPicture(Card.Card card, Bitmap img)
         {
             using (var cmd = new NpgsqlCommand($"UPDATE cards SET picture = @Image WHERE id = {card.id};", conn))
             {
                 NpgsqlParameter parameter = cmd.CreateParameter();
                 parameter.ParameterName = "@Image";
                 parameter.NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Bytea;
+                parameter.Value = ConvertImageToBytes(img);
+                cmd.Parameters.Add(parameter);
+
+                cmd.ExecuteNonQuery();
             }
         }
 
@@ -88,6 +91,13 @@ namespace flashcards_server.DatabaseManagement
                     return listOfCards;
                 }
             }
+        }
+
+        private Byte[] ConvertImageToBytes(Bitmap img)
+        {
+            var converter = new ImageConverter();
+
+            return (byte[])converter.ConvertTo(img, typeof(byte[]));
         }
     }
 }
