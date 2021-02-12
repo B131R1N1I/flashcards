@@ -32,11 +32,7 @@ namespace flashcards_server.DatabaseManagement
         protected void UpdateUserEmail(User.User user, string newEmail)
         {
             using (var cmd = new NpgsqlCommand($"UPDATE users SET email = '{newEmail}' WHERE id={user.id}", conn))
-            {
-                // some code (try..catch) etc.
                 cmd.ExecuteNonQuery();
-                System.Console.WriteLine("updated email");
-            }
         }
 
         public void UpdateUserEmail(Object source, User.User.EmailEventArgs args)
@@ -47,11 +43,7 @@ namespace flashcards_server.DatabaseManagement
         protected void UpdateUserName(User.User user, string newName)
         {
             using (var cmd = new NpgsqlCommand($"UPDATE users SET name = '{newName}' WHERE id={user.id}", conn))
-            {
-                // some code (try..catch) etc.
                 cmd.ExecuteNonQuery();
-                System.Console.WriteLine("updated name");
-            }
         }
 
         public void UpdateUserName(Object source, User.User.NameEventArgs args)
@@ -62,11 +54,7 @@ namespace flashcards_server.DatabaseManagement
         protected void UpdateUserSurname(User.User user, string newSurname)
         {
             using (var cmd = new NpgsqlCommand($"UPDATE users SET surname = '{newSurname}' WHERE id={user.id}", conn))
-            {
-                // some code (try..catch) etc.
                 cmd.ExecuteNonQuery();
-                System.Console.WriteLine("updated surname");
-            }
         }
 
         public void UpdateUserSurname(Object source, User.User.SurnameEventArgs args)
@@ -77,11 +65,7 @@ namespace flashcards_server.DatabaseManagement
         protected void UpdateUserPassword(User.User user, string newPassword)
         {
             using (var cmd = new NpgsqlCommand($"UPDATE users SET password = md5('{newPassword}') WHERE id={user.id}", conn))
-            {
-                // some code (try..catch) etc.
                 cmd.ExecuteNonQuery();
-                System.Console.WriteLine("Updated password");
-            }
         }
 
         public void UpdateUserPassword(Object source, User.User.PasswordEventArgs args)
@@ -92,44 +76,31 @@ namespace flashcards_server.DatabaseManagement
         public bool IsUserUsernameUnique(string username)
         {
             using (var cmd = new NpgsqlCommand($"SELECT COUNT(*) FROM users WHERE LOWER(users.username) = LOWER('{username}')", conn))
-            {
-                var output = (Int64)cmd.ExecuteScalar();
-                return output == 0;
-            }
+                return (Int64)cmd.ExecuteScalar() == 0;
         }
 
         public bool IsUserEmailUnique(string email)
         {
             using (var cmd = new NpgsqlCommand($"SELECT COUNT(*) FROM users WHERE LOWER(users.email) = LOWER('{email}')", conn))
-            {
-                var output = (Int64)cmd.ExecuteScalar();
-                return output == 0;
-            }
+                return (Int64)cmd.ExecuteScalar() == 0;
         }
 
         public User.User GetUserById(int id)
         {
             using (var cmd = new NpgsqlCommand($"SELECT * FROM users WHERE id = {id} LIMIT 1;", conn))
-            {
                 return _GetUserByCmd(cmd);
-            }
         }
 
         public User.User GetUserByUsername(string username)
         {
             using (var cmd = new NpgsqlCommand($"SELECT * FROM users WHERE username = '{username}' LIMIT 1;", conn))
-            {
                 return _GetUserByCmd(cmd);
-            }
         }
 
         public User.User GetUserByEmail(string email)
         {
             using (var cmd = new NpgsqlCommand($"SELECT * FROM users WHERE email = '{email}' LIMIT 1;", conn))
-            {
-
                 return _GetUserByCmd(cmd);
-            }
         }
 
         public User.User _GetUserByCmd(NpgsqlCommand cmd)
