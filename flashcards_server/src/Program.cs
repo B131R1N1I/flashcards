@@ -1,65 +1,32 @@
 ﻿using System;
-
-
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 
 namespace flashcards_server
 {
-    class Program
+    static class Program
     {
+        public static DatabaseManagement.DatabaseManagement db = new DatabaseManagement.DatabaseManagement("localhost", "flashcards_app", "fc_app", "flashcards");
 
-        static void Main()
+        static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            CreateHostBuilder(args).Build().Run();
+        }
+
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.UseStartup<flashcards_server.API.Startup>();
+                });
 
 
-            var u = new User.User("Usernr2", "userek@wp.pl", "Paweł", "Kowalski", "trudne_hasło");
-            var db = new DatabaseManagement.DatabaseManagement("localhost", "flashcards_app", "fc_app", "flashcards");
-
-            System.Console.WriteLine(u.email);
-            System.Console.WriteLine(u.surname);
-            // System.Console.WriteLine(u.id);
-            db.OpenConnection();
-
-            try
-            {
-                db.AddUserToDatabase(u);
-            }
-            catch (Exception e)
-            {
-                System.Console.WriteLine(e.Message);
-            }
-            System.Console.WriteLine(db.IsUsernameUnique("aaab1234"));
-
-            try
-            {
-                var getuser = db.GetUserById(1);
-                System.Console.WriteLine(getuser);
-            }
-            catch (Exception e)
-            {
-                System.Console.WriteLine(e.Message);
-            }
-
-            try
-            {
-                var getu = db.GetUserByUsername("Usernr2");
-                System.Console.WriteLine(getu);
-            }
-            catch (Exception e)
-            {
-                System.Console.WriteLine(e.Message);
-            }
-
-            try
-            {
-                var getu = db.GetUserByEmail("email@werw.pl");
-                System.Console.WriteLine(getu);
-            }
-            catch (Exception e)
-            {
-                System.Console.WriteLine(e.Message);
-            }
-            System.Console.WriteLine("end");
+        static void AddUserEvents(object obj, EventArgs e)
+        {
+            ((User.User)obj).NameChangedEventHandler += db.UpdateUserName;
+            ((User.User)obj).EmailChangedEventHandler += db.UpdateUserEmail;
+            ((User.User)obj).SurnameChangedEventHandler += db.UpdateUserSurname;
+            ((User.User)obj).PasswordChangedEventHandler += db.UpdateUserPassword;
         }
     }
 }
