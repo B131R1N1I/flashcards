@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json.Serialization;
 
 
 namespace flashcards_server.User
@@ -153,7 +154,7 @@ namespace flashcards_server.User
                 }
             }
         }
-
+        [JsonConstructor]
         public User(string username, string email, string name, string surname, string password, uint? id = null)
         {
             this.id = id;
