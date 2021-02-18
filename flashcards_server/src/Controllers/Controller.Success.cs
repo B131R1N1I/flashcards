@@ -1,9 +1,9 @@
 using System;
-
+using System.Net.Http;
 
 namespace flashcards_server.API.Controllers
 {
-    partial class SuccessMessage
+    public class SuccessMessage : HttpResponseMessage
     {
         public bool successed { get; set; }
     }

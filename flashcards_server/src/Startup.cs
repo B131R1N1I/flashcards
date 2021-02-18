@@ -11,6 +11,8 @@ namespace flashcards_server.API
 {
     public class Startup
     {
+        // readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -21,7 +23,25 @@ namespace flashcards_server.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
+            // services.AddCors(options =>
+            // {
+            //     options.AddPolicy(name: MyAllowSpecificOrigins,
+            //                       builder =>
+            //                       {
+            //                           builder.WithOrigins("https://localhost:5001/")
+            //                                                 .AllowAnyHeader()
+            //                                                 .AllowAnyMethod();
+            //                       });
+            // });
+            services.AddCors(options =>
+            {
+                // this defines a CORS policy called "default"
+                options.AddPolicy("default", builder =>
+                {
+                    builder.WithOrigins("https://localhost:5001/*")
+                           .AllowAnyHeader();
+                });
+            });
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
@@ -34,6 +54,7 @@ namespace flashcards_server.API
         {
             if (env.IsDevelopment())
             {
+
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "flashcards_server v1"));
@@ -42,6 +63,8 @@ namespace flashcards_server.API
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseCors("default");
 
             app.UseAuthorization();
 

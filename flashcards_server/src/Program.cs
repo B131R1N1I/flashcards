@@ -10,6 +10,7 @@ namespace flashcards_server
 
         static void Main(string[] args)
         {
+            db.OpenConnection();
             CreateHostBuilder(args).Build().Run();
         }
 
