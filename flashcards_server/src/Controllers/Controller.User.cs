@@ -11,28 +11,28 @@ using System.Net;
 namespace flashcards_server.API.Controllers
 {
     [ApiController]
-    [Route("fc/session")]
+    [Route("fc/user")]
     public class LoginController : ControllerBase
     {
-        [HttpGet]
-        [Route("login/{login}/{password}")]
-        public string Get(string login, string password)
-        {
-            try
-            {
-                var u = db.GetUserByUsername(login);
-                var correct = db.PasswordMatch(u, password);
-                return $"Login: {login}\n" +
-                       $"Password: {password}\n" +
-                       $"Correct: {correct}";
-            }
-            catch (Npgsql.NpgsqlException e)
-            {
-                return e.Message;
-            }
+        // [HttpGet]
+        // [Route("login/{login}/{password}")]
+        // public string Get(string login, string password)
+        // {
+        //     try
+        //     {
+        //         var u = db.GetUserByUsername(login);
+        //         var correct = db.PasswordMatch(u, password);
+        //         return $"Login: {login}\n" +
+        //                $"Password: {password}\n" +
+        //                $"Correct: {correct}";
+        //     }
+        //     catch (Npgsql.NpgsqlException e)
+        //     {
+        //         return e.Message;
+        //     }
 
 
-        }
+        // }
 
         [HttpPost]
         [Route("register/")]
@@ -55,17 +55,54 @@ namespace flashcards_server.API.Controllers
             }
         }
 
+        [HttpPut]
+        [Route("update/")]
+        [EnableCors]
+        [Consumes("application/json")]
+        [Produces("application/json")]
+        public SuccessMessage UpdateUserData(UpdateRequest updateRequest)
+        {
+            try
+            {
+                var user = db.GetUserById(updateRequest.id);
+                var to = updateRequest.to;
+                switch (updateRequest.what.ToLower())
+                {
+                    case "email":
+                        user.email = to;
+                        break;
+                    case "name":
+                        user.name = to;
+                        break;
+                    case "surname":
+                        user.surname = to;
+                        break;
+                    case "password":
+                        user.password = to;
+                        break;
+                    default:
+                        return new SuccessMessage() { successed = false };
+
+                }
+                return new SuccessMessage() { successed = true };
+            }
+            catch (Npgsql.NpgsqlException)
+            {
+                return new SuccessMessage() { successed = false };
+            }
+        }
+
+
         [HttpGet]
         [Route("getuser/")]
         [EnableCors]
-        // [Consumes("application/json")]
         [Produces("application/json")]
-        public HttpResponseMessage GetUserPublic(uint? id, string username)
+        public HttpResponseMessage GetUserPublic(uint id, string username)
         {
 
             try
             {
-                return CreatePublicUser(db.GetUserById((int)id));
+                return CreatePublicUser(db.GetUserById(id));
             }
             catch (Npgsql.NpgsqlException)
             {

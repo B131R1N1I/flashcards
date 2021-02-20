@@ -11,6 +11,7 @@ namespace flashcards_server.DatabaseManagement
         public DatabaseManagement(string server, string user, string password /*temporary*/, string database)
         {
             conn = new NpgsqlConnection($"Server={server};User Id={user}; Password={password};Database={database}");
+            User.User.UserCreatedEventHandler += AddUserEvents;
         }
 
         public void OpenConnection()
@@ -21,6 +22,14 @@ namespace flashcards_server.DatabaseManagement
         public void CloseConnection()
         {
             conn.Close();
+        }
+
+        void AddUserEvents(object obj, EventArgs e)
+        {
+            ((User.User)obj).NameChangedEventHandler += this.UpdateUserName;
+            ((User.User)obj).EmailChangedEventHandler += this.UpdateUserEmail;
+            ((User.User)obj).SurnameChangedEventHandler += this.UpdateUserSurname;
+            ((User.User)obj).PasswordChangedEventHandler += this.UpdateUserPassword;
         }
 
     }

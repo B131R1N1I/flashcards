@@ -85,7 +85,7 @@ namespace flashcards_server.DatabaseManagement
                 return (Int64)cmd.ExecuteScalar() == 0;
         }
 
-        public User.User GetUserById(int id)
+        public User.User GetUserById(uint id)
         {
             using (var cmd = new NpgsqlCommand($"SELECT * FROM users WHERE id = {id} LIMIT 1;", conn))
                 return _GetUserByCmd(cmd);
