@@ -122,9 +122,10 @@ namespace flashcards_server.DatabaseManagement
             {
                 using (var output = cmd.ExecuteReader())
                 {
-                    output.Read();
                     if (!output.HasRows)
                         throw new NpgsqlException("No user found to match password");
+                    output.Read();
+
                     return (bool)output[0];
                 }
             }

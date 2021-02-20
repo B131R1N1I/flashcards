@@ -5,12 +5,13 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Cors;
+using System.Net.Http;
+using System.Net;
 
 namespace flashcards_server.API.Controllers
 {
-
     [ApiController]
-    [Route("fc")]
+    [Route("fc/session")]
     public class LoginController : ControllerBase
     {
         [HttpGet]
@@ -52,7 +53,36 @@ namespace flashcards_server.API.Controllers
             {
                 return new SuccessMessage { successed = false };
             }
+        }
 
+        [HttpGet]
+        [Route("getuser/")]
+        [EnableCors]
+        // [Consumes("application/json")]
+        [Produces("application/json")]
+        public HttpResponseMessage GetUserPublic(uint? id, string username)
+        {
+
+            try
+            {
+                return CreatePublicUser(db.GetUserById((int)id));
+            }
+            catch (Npgsql.NpgsqlException)
+            {
+                try
+                {
+                    return CreatePublicUser(db.GetUserByUsername(username));
+                }
+                catch (Npgsql.NpgsqlException)
+                {
+                    return new HttpResponseMessage(HttpStatusCode.NoContent);
+                }
+            }
+        }
+
+        private PublicUser CreatePublicUser(User.User u)
+        {
+            return new PublicUser { id = u.id, username = u.username };
         }
 
         DatabaseManagement.DatabaseManagement db = flashcards_server.Program.db;
