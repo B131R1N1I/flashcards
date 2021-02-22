@@ -15,14 +15,16 @@ namespace User.Tests
             var uName = "name";
             var uSurname = "surname";
             var uPassword = "Pasword123";
-            var user = new fs.User.User(uLogin, uEmail, uName, uSurname, uPassword);
+            var id = 5;
+
+            var user = new fs.User.User(uLogin, uEmail, uName, uSurname, uPassword, id);
 
             Assert.Equal(uLogin, user.username);
             Assert.Equal(uEmail, user.email);
             Assert.Equal(uName, user.name);
             Assert.Equal(uSurname, user.surname);
             Assert.Equal(uPassword, user.password);
-            Assert.Null(user.id);
+            Assert.Equal((uint)id, user.id);
 
             var secondUserId = 4096;
 
@@ -31,6 +33,19 @@ namespace User.Tests
             Assert.True(user.id == secondUserId);
         }
 
+        [Fact]
+        public void UserWithoutID()
+        {
+            var uLogin = "login";
+            var uEmail = "email@email.com";
+            var uName = "name";
+            var uSurname = "surname";
+            var uPassword = "Pasword123";
+
+            var user = new fs.User.User(uLogin, uEmail, uName, uSurname, uPassword);
+
+            Assert.Null(user.id);
+        }
 
     }
 }

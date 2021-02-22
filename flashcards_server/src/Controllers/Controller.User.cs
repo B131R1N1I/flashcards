@@ -39,19 +39,23 @@ namespace flashcards_server.API.Controllers
         [EnableCors]
         [Consumes("application/json")]
         [Produces("application/json")]
-        public SuccessMessage Register(User.User u)
+        public SuccessMessageResponseMessage Register(User.User u)
         {
             try
             {
                 db.AddUserToDatabase(u);
                 System.Console.WriteLine($">> added {u.username}");
-                System.Console.WriteLine(" >>>>> " + JsonSerializer.Serialize(new SuccessMessage { successed = true }));
-                var mess = new SuccessMessage { successed = true };
-                return new SuccessMessage { successed = true };
+                System.Console.WriteLine(" >>>>> " + JsonSerializer.Serialize(new SuccessMessageResponseMessage { successed = true }));
+                var mess = new SuccessMessageResponseMessage { successed = true };
+                return new SuccessMessageResponseMessage { successed = true };
             }
-            catch (Npgsql.NpgsqlException)
+            catch (Npgsql.NpgsqlException e)
             {
-                return new SuccessMessage { successed = false };
+                return new SuccessMessageResponseMessage { successed = false, reason = e.Message };
+            }
+            catch (FormatException e)
+            {
+                return new SuccessMessageResponseMessage { successed = false, reason = e.Message };
             }
         }
 
@@ -60,7 +64,7 @@ namespace flashcards_server.API.Controllers
         [EnableCors]
         [Consumes("application/json")]
         [Produces("application/json")]
-        public SuccessMessage UpdateUserData(UpdateRequest updateRequest)
+        public SuccessMessageResponseMessage UpdateUserData(UpdateRequest updateRequest)
         {
             try
             {
@@ -81,14 +85,18 @@ namespace flashcards_server.API.Controllers
                         user.password = to;
                         break;
                     default:
-                        return new SuccessMessage() { successed = false };
+                        return new SuccessMessageResponseMessage() { successed = false };
 
                 }
-                return new SuccessMessage() { successed = true };
+                return new SuccessMessageResponseMessage() { successed = true };
             }
-            catch (Npgsql.NpgsqlException)
+            catch (Npgsql.NpgsqlException e)
             {
-                return new SuccessMessage() { successed = false };
+                return new SuccessMessageResponseMessage() { successed = false, reason = e.Message };
+            }
+            catch (FormatException e)
+            {
+                return new SuccessMessageResponseMessage() { successed = false, reason = e.Message };
             }
         }
 
@@ -102,13 +110,13 @@ namespace flashcards_server.API.Controllers
 
             try
             {
-                return CreatePublicUser(db.GetUserById(id));
+                return CreatePublicUserResponseMessage(db.GetUserById(id));
             }
             catch (Npgsql.NpgsqlException)
             {
                 try
                 {
-                    return CreatePublicUser(db.GetUserByUsername(username));
+                    return CreatePublicUserResponseMessage(db.GetUserByUsername(username));
                 }
                 catch (Npgsql.NpgsqlException)
                 {
@@ -117,9 +125,21 @@ namespace flashcards_server.API.Controllers
             }
         }
 
-        private PublicUser CreatePublicUser(User.User u)
+        [HttpGet]
+        [Route("isEmailUnique")]
+        [EnableCors]
+        [Produces("application/json")]
+        public HttpResponseMessage isEmailUnique(string email)
         {
-            return new PublicUser { id = u.id, username = u.username };
+            if (db.IsValidEmail(email))
+                return new IsAleradyUsedResponseMessage() { isAlreadyUsed = !db.IsUserEmailUnique(email) };
+            else
+                return new HttpResponseMessage(HttpStatusCode.BadRequest);
+        }
+
+        private PublicUserResponseMessage CreatePublicUserResponseMessage(User.User u)
+        {
+            return new PublicUserResponseMessage { id = u.id, username = u.username };
         }
 
         DatabaseManagement.DatabaseManagement db = flashcards_server.Program.db;

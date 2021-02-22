@@ -1,5 +1,6 @@
 using System;
 using Npgsql;
+using System.Net.Mail;
 
 
 namespace flashcards_server.DatabaseManagement
@@ -8,24 +9,31 @@ namespace flashcards_server.DatabaseManagement
     {
         public void AddUserToDatabase(User.User user)
         {
-            if (!IsUserUsernameUnique(user.username))
-                throw new NpgsqlException($"username {user.username} is already used");
-            if (!IsUserEmailUnique(user.email))
-                throw new NpgsqlException($"email {user.email} is already used");
-            using (var cmd = new NpgsqlCommand($"INSERT INTO users (username, email, name, surname, password) VALUES ('{user.username}', '{user.email}', '{user.name}', '{user.surname}', md5('{user.password}'));", conn))
+            try
             {
-                try
+                if (!IsUserUsernameUnique(user.username))
+                    throw new NpgsqlException($"username {user.username} is already used");
+                if (!IsUserEmailUnique(user.email))
+                    throw new NpgsqlException($"email {user.email} is already used");
+                using (var cmd = new NpgsqlCommand($"INSERT INTO users (username, email, name, surname, password) VALUES ('{user.username}', '{user.email}', '{user.name}', '{user.surname}', md5('{user.password}'));", conn))
                 {
-                    cmd.ExecuteNonQuery();
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                    }
+                    catch (PostgresException e)
+                    {
+                        // some code
+                        // it won't be printing out the error message,
+                        // it will handle it
+                        System.Console.WriteLine("-> Cannot add user: " + user.username);
+                        System.Console.WriteLine("-> " + e.MessageText);
+                    }
                 }
-                catch (PostgresException e)
-                {
-                    // some code
-                    // it won't be printing out the error message,
-                    // it will handle it
-                    System.Console.WriteLine("-> Cannot add user: " + user.username);
-                    System.Console.WriteLine("-> " + e.MessageText);
-                }
+            }
+            catch (FormatException)
+            {
+                throw;
             }
         }
 
@@ -81,8 +89,23 @@ namespace flashcards_server.DatabaseManagement
 
         public bool IsUserEmailUnique(string email)
         {
+            if (!IsValidEmail(email))
+                throw new FormatException($"ERROR: '{email}' isn't a correct mail address");
             using (var cmd = new NpgsqlCommand($"SELECT COUNT(*) FROM users WHERE LOWER(users.email) = LOWER('{email}')", conn))
                 return (Int64)cmd.ExecuteScalar() == 0;
+        }
+
+        public bool IsValidEmail(string email)
+        {
+            try
+            {
+                var m = new MailAddress(email);
+                return true;
+            }
+            catch (FormatException)
+            {
+                return false;
+            }
         }
 
         public User.User GetUserById(uint id)
