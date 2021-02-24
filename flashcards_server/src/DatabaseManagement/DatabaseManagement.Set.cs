@@ -15,12 +15,14 @@ namespace flashcards_server.DatabaseManagement
             {
                 try
                 {
-                    cmd.ExecuteNonQuery();
+                    if (IsSetNameUnique(set.name))
+                        cmd.ExecuteNonQuery();
+                    else
+                        throw new NpgsqlException($"'{set.name}' is already used set name");
                 }
-                catch (PostgresException e)
+                catch (Exception)
                 {
-                    System.Console.WriteLine("Cannot add set to DB");
-                    System.Console.WriteLine(">>>" + e.MessageText);
+                    throw;
                 }
             }
         }

@@ -62,7 +62,7 @@ namespace flashcards_server.API
                 // endpoints.MapControllers();
                 endpoints.MapControllerRoute(
                     name: "default",
-                    pattern: "{controller=fc}/{action=akcja}/");
+                    pattern: "{controller=fc}/");
 
             });
         }

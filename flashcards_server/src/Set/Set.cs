@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace flashcards_server.Set
 {
@@ -146,6 +147,11 @@ namespace flashcards_server.Set
 
         public Set(string name, uint creator, uint owner, DateTime createdDate, DateTime lastModification, bool isPublic, int id) :
         this(name, creator, owner, createdDate, lastModification, isPublic, (uint?)id)
+        { }
+
+        [JsonConstructor]
+        public Set(string name, uint creator, uint owner, bool isPublic) :
+        this(name, creator, owner, createdDate: DateTime.Now, lastModification: DateTime.Now, isPublic)
         { }
 
         public override string ToString()

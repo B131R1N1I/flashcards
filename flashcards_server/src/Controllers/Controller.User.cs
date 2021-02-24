@@ -12,7 +12,7 @@ namespace flashcards_server.API.Controllers
 {
     [ApiController]
     [Route("fc/user")]
-    public class LoginController : ControllerBase
+    public class UserController : ControllerBase
     {
         [HttpPost]
         [Route("register/")]
@@ -25,7 +25,6 @@ namespace flashcards_server.API.Controllers
             {
                 db.AddUserToDatabase(u);
                 System.Console.WriteLine($">> added {u.username}");
-                System.Console.WriteLine(" >>>>> " + JsonSerializer.Serialize(new SuccessMessageResponseMessage { successed = true }));
                 var mess = new SuccessMessageResponseMessage { successed = true };
                 return new SuccessMessageResponseMessage { successed = true };
             }
@@ -66,7 +65,9 @@ namespace flashcards_server.API.Controllers
                         user.password = to;
                         break;
                     default:
-                        return CreateSuccessMessageResponseMessage(HttpStatusCode.BadRequest, false, $"'{what}' is not valid property");
+                        return CreateSuccessMessageResponseMessage(HttpStatusCode.BadRequest,
+                                                                   false,
+                                                                   $"'{what}' is not valid property");
 
                 }
                 return new SuccessMessageResponseMessage() { successed = true };
@@ -74,7 +75,9 @@ namespace flashcards_server.API.Controllers
             catch (Exception e)
             {
                 if (e is FormatException || e is Npgsql.NpgsqlException)
-                    return CreateSuccessMessageResponseMessage(HttpStatusCode.BadRequest, false, e.Message);
+                    return CreateSuccessMessageResponseMessage(HttpStatusCode.BadRequest,
+                                                               false,
+                                                               e.Message);
                 throw;
             }
         }
@@ -113,7 +116,9 @@ namespace flashcards_server.API.Controllers
             if (db.IsValidEmail(email))
                 return new IsAleradyUsedResponseMessage() { isAlreadyUsed = !db.IsUserEmailUnique(email) };
             else
-                return CreateSuccessMessageResponseMessage(HttpStatusCode.BadRequest, false, $"{email} isn't correct email format.");
+                return CreateSuccessMessageResponseMessage(HttpStatusCode.BadRequest,
+                                                           false,
+                                                           $"{email} isn't correct email format.");
         }
 
         [HttpGet]
@@ -130,9 +135,16 @@ namespace flashcards_server.API.Controllers
             return new PublicUserResponseMessage { id = u.id, username = u.username };
         }
 
-        private SuccessMessageResponseMessage CreateSuccessMessageResponseMessage(HttpStatusCode code, bool successed, string message)
+        private SuccessMessageResponseMessage CreateSuccessMessageResponseMessage(HttpStatusCode code,
+                                                                                  bool successed,
+                                                                                  string message)
         {
-            return new SuccessMessageResponseMessage() { StatusCode = code, successed = successed, reason = message };
+            return new SuccessMessageResponseMessage()
+            {
+                StatusCode = code,
+                successed = successed,
+                reason = message
+            };
         }
 
         DatabaseManagement.DatabaseManagement db = flashcards_server.Program.db;
