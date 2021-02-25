@@ -46,6 +46,12 @@ namespace flashcards_server.DatabaseManagement
                 return _GetListOfSetsByCmd(cmd);
         }
 
+        public List<Set.Set> GetPublicSets()
+        {
+            using (var cmd = new NpgsqlCommand($"SELECT * FROM sets WHERE is_public = true;", conn))
+                return _GetListOfSetsByCmd(cmd);
+        }
+
         public void MakeSetActive(User.User user, Set.Set set)
         {
             using (var cmd = new NpgsqlCommand($"DELETE FROM active_sets WHERE user_id={user.id} AND set_id={set.id}; " +
