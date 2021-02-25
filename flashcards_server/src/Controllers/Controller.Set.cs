@@ -43,6 +43,15 @@ namespace flashcards_server.API.Controllers
             return db.GetPublicSets();
         }
 
+        [HttpGet]
+        [Route("getPublicSetsByNameLike")]
+        [EnableCors]
+        [Produces("application/json")]
+        public List<Set.Set> getPublicSetsByNameLike(string name)
+        {
+            return db.GetPublicSetsByNameLike(name);
+        }
+
         private Set.Set CreateSetFromMinSet(MinSet minSet)
         {
             return new Set.Set(minSet.name, minSet.creator, minSet.owner, minSet.isPublic);

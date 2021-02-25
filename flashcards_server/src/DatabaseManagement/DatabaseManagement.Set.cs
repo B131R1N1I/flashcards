@@ -57,7 +57,6 @@ namespace flashcards_server.DatabaseManagement
             using (var cmd = new NpgsqlCommand($"DELETE FROM active_sets WHERE user_id={user.id} AND set_id={set.id}; " +
                                                $"INSERT INTO active_sets (user_id, set_id) VALUES ({user.id}, {set.id});", conn))
                 cmd.ExecuteNonQuery();
-
         }
 
         public void MakeSetInactive(User.User user, Set.Set set)
@@ -65,6 +64,12 @@ namespace flashcards_server.DatabaseManagement
             using (var cmd = new NpgsqlCommand($"DELETE FROM active_sets WHERE user_id={user.id} AND set_id={set.id}; ", conn))
                 cmd.ExecuteNonQuery();
 
+        }
+
+        public List<Set.Set> GetPublicSetsByNameLike(String name)
+        {
+            using (var cmd = new NpgsqlCommand($"SELECT * FROM sets where name LIKE '%{name}%' AND is_public = true;", conn))
+                return _GetListOfSetsByCmd(cmd);
         }
 
         public Set.Set GetSetByName(String name)
