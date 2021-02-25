@@ -34,7 +34,6 @@ namespace flashcards_server.Set
                 OwnerChangedEventHandler(this, new UserEventArgs { user = user });
         }
 
-
         protected void OnLastModificationDateChanged(DateTime date)
         {
             if (LastModificationDateChanged != null)
@@ -47,7 +46,7 @@ namespace flashcards_server.Set
                 IsPublicChanged(this, new IsPublicEventArgs { isPublic = isPublic });
         }
 
-        public readonly uint? id;
+        public uint? id { get; private set; }
 
         private string _name;
 
