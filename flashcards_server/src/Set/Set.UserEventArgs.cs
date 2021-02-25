@@ -4,7 +4,7 @@ namespace flashcards_server.Set
 {
 	public partial class Set
 	{
-		public class OwnerEventArgs : EventArgs
+		public class UserEventArgs : EventArgs
 		{
 			public uint user { get; set;}
 		}
