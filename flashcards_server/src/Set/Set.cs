@@ -10,7 +10,7 @@ namespace flashcards_server.Set
 
         public event EventHandler<NameEventArgs> NameChangedEventHandler;
 
-        public event EventHandler<OwnerEventArgs> OwnerChangedEventHandler;
+        public event EventHandler<UserEventArgs> OwnerChangedEventHandler;
 
         public event EventHandler<DateEventArgs> LastModificationDateChanged;
 
@@ -31,8 +31,9 @@ namespace flashcards_server.Set
         protected virtual void OnOwnerChanged(uint user)
         {
             if (OwnerChangedEventHandler != null)
-                OwnerChangedEventHandler(this, new OwnerEventArgs { user = user });
+                OwnerChangedEventHandler(this, new UserEventArgs { user = user });
         }
+
 
         protected void OnLastModificationDateChanged(DateTime date)
         {
@@ -68,7 +69,24 @@ namespace flashcards_server.Set
             }
         }
 
-        public readonly uint creator;
+        private uint _creator;
+
+        public uint creator
+        {
+            get => _creator;
+            private set
+            {
+                try
+                {
+                    _creator = value;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Cannot set creator to user with id: " + value);
+                    Console.WriteLine(e.Message);
+                }
+            }
+        }
 
         private uint _owner;
 
@@ -90,7 +108,25 @@ namespace flashcards_server.Set
             }
         }
 
-        public readonly DateTime createdDate;
+        private DateTime _createdDate;
+
+        public DateTime createdDate
+        {
+            get => _createdDate;
+            private set
+            {
+                try
+                {
+                    _createdDate = value;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Cannot set created date to: " + value.ToString());
+                    Console.WriteLine(e.Message);
+                }
+            }
+
+        }
 
         private DateTime _lastModificationDate;
 
@@ -149,7 +185,6 @@ namespace flashcards_server.Set
         this(name, creator, owner, createdDate, lastModification, isPublic, (uint?)id)
         { }
 
-        [JsonConstructor]
         public Set(string name, uint creator, uint owner, bool isPublic) :
         this(name, creator, owner, createdDate: DateTime.Now, lastModification: DateTime.Now, isPublic)
         { }
