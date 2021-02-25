@@ -19,10 +19,9 @@ namespace flashcards_server.API.Controllers
         [EnableCors]
         [Consumes("application/json")]
         [Produces("application/json")]
-        public SuccessMessageResponseMessage CreateSet(TempMinSet minSet)
+        public SuccessMessageResponseMessage CreateSet(MinSet minSet)
         {
-            var set = CreateSetFromTempMinSet(minSet);
-            System.Console.WriteLine(" wqereqwrewrqrewqrewqierwqkoerwiierwoioewiowerienlnk");
+            var set = CreateSetFromMinSet(minSet);
             try
             {
                 db.AddSetToDatabase(set);
@@ -35,7 +34,16 @@ namespace flashcards_server.API.Controllers
             }
         }
 
-        private Set.Set CreateSetFromTempMinSet(TempMinSet minSet)
+        [HttpGet]
+        [Route("allPublicSets")]
+        [EnableCors]
+        [Produces("application/json")]
+        public List<Set.Set> getAllSets()
+        {
+            return db.GetPublicSets();
+        }
+
+        private Set.Set CreateSetFromMinSet(MinSet minSet)
         {
             return new Set.Set(minSet.name, minSet.creator, minSet.owner, minSet.isPublic);
         }

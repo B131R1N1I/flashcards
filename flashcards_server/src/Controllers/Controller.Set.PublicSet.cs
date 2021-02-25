@@ -2,7 +2,7 @@ using System;
 
 namespace flashcards_server.API.Controllers
 {
-    public class TempMinSet
+    public class MinSet
     {
         public string name { get; set; }
         public uint creator { get; set; }
