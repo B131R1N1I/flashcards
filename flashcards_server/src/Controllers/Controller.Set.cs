@@ -38,16 +38,25 @@ namespace flashcards_server.API.Controllers
         [Route("allPublicSets")]
         [EnableCors]
         [Produces("application/json")]
-        public List<Set.Set> getAllSets()
+        public List<Set.Set> GetAllSets()
         {
             return db.GetPublicSets();
+        }
+
+        [HttpGet]
+        [Route("getSetById")]
+        [EnableCors]
+        [Produces("application/json")]
+        public Set.Set GetSetById(int id)
+        {
+            return db.GetSetById(id);
         }
 
         [HttpGet]
         [Route("getPublicSetsByNameLike")]
         [EnableCors]
         [Produces("application/json")]
-        public List<Set.Set> getPublicSetsByNameLike(string name)
+        public List<Set.Set> GetPublicSetsByNameLike(string name)
         {
             return db.GetPublicSetsByNameLike(name);
         }
