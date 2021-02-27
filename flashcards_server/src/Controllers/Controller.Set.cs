@@ -26,11 +26,11 @@ namespace flashcards_server.API.Controllers
             {
                 db.AddSetToDatabase(set);
                 System.Console.WriteLine($">>> ADDED SET {set.name}");
-                return new SuccessMessageResponseMessage() { successed = true };
+                return new SuccessMessageResponseMessage(true);
             }
             catch (Npgsql.NpgsqlException e)
             {
-                return new SuccessMessageResponseMessage() { successed = false, reason = e.Message, StatusCode = HttpStatusCode.BadRequest };
+                return new SuccessMessageResponseMessage(false, e.Message, HttpStatusCode.BadRequest);
             }
         }
 
@@ -47,7 +47,7 @@ namespace flashcards_server.API.Controllers
         [Route("getSetById")]
         [EnableCors]
         [Produces("application/json")]
-        public Set.Set GetSetById(int id)
+        public Set.Set GetSetById(uint id)
         {
             return db.GetSetById(id);
         }
@@ -66,6 +66,5 @@ namespace flashcards_server.API.Controllers
             return new Set.Set(minSet.name, minSet.creator, minSet.owner, minSet.isPublic);
         }
         DatabaseManagement.DatabaseManagement db = flashcards_server.Program.db;
-
     }
 }

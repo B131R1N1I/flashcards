@@ -63,7 +63,6 @@ namespace flashcards_server.DatabaseManagement
         {
             using (var cmd = new NpgsqlCommand($"DELETE FROM active_sets WHERE user_id={user.id} AND set_id={set.id}; ", conn))
                 cmd.ExecuteNonQuery();
-
         }
 
         public List<Set.Set> GetPublicSetsByNameLike(String name)
@@ -78,7 +77,7 @@ namespace flashcards_server.DatabaseManagement
                 return _GetSetByCmd(cmd);
         }
 
-        public Set.Set GetSetById(int id)
+        public Set.Set GetSetById(uint id)
         {
             using (var cmd = new NpgsqlCommand($"SELECT * FROM sets WHERE id = {id};", conn))
                 return _GetSetByCmd(cmd);

@@ -25,13 +25,13 @@ namespace flashcards_server.API.Controllers
             {
                 db.AddUserToDatabase(u);
                 System.Console.WriteLine($">> added {u.username}");
-                var mess = new SuccessMessageResponseMessage { successed = true };
-                return new SuccessMessageResponseMessage { successed = true };
+                var mess = new SuccessMessageResponseMessage(true);
+                return new SuccessMessageResponseMessage(true);
             }
             catch (Exception e)
             {
                 if (e is FormatException || e is Npgsql.NpgsqlException)
-                    return new SuccessMessageResponseMessage { successed = false, reason = e.Message };
+                    return new SuccessMessageResponseMessage(false, e.Message);
                 throw;
             }
         }
@@ -65,19 +65,19 @@ namespace flashcards_server.API.Controllers
                         user.password = to;
                         break;
                     default:
-                        return CreateSuccessMessageResponseMessage(HttpStatusCode.BadRequest,
-                                                                   false,
-                                                                   $"'{what}' is not valid property");
+                        return new SuccessMessageResponseMessage(false,
+                                                                 $"'{what}' is not valid property",
+                                                                 HttpStatusCode.BadRequest);
 
                 }
-                return new SuccessMessageResponseMessage() { successed = true };
+                return new SuccessMessageResponseMessage(true);
             }
             catch (Exception e)
             {
                 if (e is FormatException || e is Npgsql.NpgsqlException)
-                    return CreateSuccessMessageResponseMessage(HttpStatusCode.BadRequest,
-                                                               false,
-                                                               e.Message);
+                    return new SuccessMessageResponseMessage(false,
+                                                             e.Message,
+                                                             HttpStatusCode.BadRequest);
                 throw;
             }
         }
@@ -116,9 +116,9 @@ namespace flashcards_server.API.Controllers
             if (db.IsValidEmail(email))
                 return new IsAleradyUsedResponseMessage() { isAlreadyUsed = !db.IsUserEmailUnique(email) };
             else
-                return CreateSuccessMessageResponseMessage(HttpStatusCode.BadRequest,
-                                                           false,
-                                                           $"{email} isn't correct email format.");
+                return new SuccessMessageResponseMessage(false,
+                                                         $"{email} isn't correct email format.",
+                                                         HttpStatusCode.BadRequest);
         }
 
         [HttpGet]
@@ -133,18 +133,6 @@ namespace flashcards_server.API.Controllers
         private PublicUserResponseMessage CreatePublicUserResponseMessage(User.User u)
         {
             return new PublicUserResponseMessage { id = u.id, username = u.username };
-        }
-
-        private SuccessMessageResponseMessage CreateSuccessMessageResponseMessage(HttpStatusCode code,
-                                                                                  bool successed,
-                                                                                  string message)
-        {
-            return new SuccessMessageResponseMessage()
-            {
-                StatusCode = code,
-                successed = successed,
-                reason = message
-            };
         }
 
         DatabaseManagement.DatabaseManagement db = flashcards_server.Program.db;
