@@ -37,13 +37,13 @@ namespace flashcards_server.User
                 EmailChangedEventHandler(this, new EmailEventArgs { email = email });
         }
 
-        protected void OnNameChanged(string name)
+        protected virtual void OnNameChanged(string name)
         {
             if (NameChangedEventHandler != null)
                 NameChangedEventHandler(this, new NameEventArgs { name = name });
         }
 
-        protected void OnSurnameChanged(string surname)
+        protected virtual void OnSurnameChanged(string surname)
         {
             if (SurnameChangedEventHandler != null)
                 SurnameChangedEventHandler(this, new SurnameEventArgs { surname = surname });
