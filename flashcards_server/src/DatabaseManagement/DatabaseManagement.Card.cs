@@ -25,16 +25,26 @@ namespace flashcards_server.DatabaseManagement
             }
         }
 
-        public void UpdateCardQuestion(Card.Card card, string question)
+        protected void UpdateCardQuestion(Card.Card card, string question)
         {
             using (var cmd = new NpgsqlCommand($"UPDATE cards SET question = '{question}' WHERE id={card.id};", conn))
                 cmd.ExecuteNonQuery();
+        }
+
+        public void UpdateCardQuestion(object source, Card.Card.QuestionEventArgs args)
+        {
+            UpdateCardQuestion((Card.Card)source, args.question);
         }
 
         public void UpdateCardAnswer(Card.Card card, string answer)
         {
             using (var cmd = new NpgsqlCommand($"UPDATE cards SET answer = '{answer}' WHERE id={card.id};", conn))
                 cmd.ExecuteNonQuery();
+        }
+
+        public void UpdateCardAnswer(object source, Card.Card.AnswerEventArgs args)
+        {
+            UpdateCardAnswer((Card.Card)source, args.answer);
         }
 
         public void UpdateCardPicture(Card.Card card, Bitmap img)
@@ -51,14 +61,20 @@ namespace flashcards_server.DatabaseManagement
             }
         }
 
+        public void UpdateCardPicture(object source, Card.Card.ImageEventArgs args)
+        {
+            UpdateCardPicture((Card.Card)source, args.image);
+        }
+
+
         public Card.Card GetCardByID(uint id)
         {
-            using (var cmd = new NpgsqlCommand($"SELECT id, question, answer, picture, in_set, picture FROM cards WHERE id = {id};", conn))
+            using (var cmd = new NpgsqlCommand($"SELECT id, question, answer, picture, in_set FROM cards WHERE id = {id};", conn))
             {
                 using (var reader = cmd.ExecuteReader())
                 {
                     reader.Read();
-                    if (reader.GetValue(5) != null)
+                    if (((byte[])reader.GetValue(3)).Length > 0)
                     {
                         var imageBytes = (byte[])reader.GetValue(3);
                         var ms = new MemoryStream(imageBytes);

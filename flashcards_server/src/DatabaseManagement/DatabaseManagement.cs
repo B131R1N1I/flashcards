@@ -12,6 +12,7 @@ namespace flashcards_server.DatabaseManagement
         {
             conn = new NpgsqlConnection($"Server={server};User Id={user}; Password={password};Database={database}");
             User.User.UserCreatedEventHandler += AddUserEvents;
+            Card.Card.CardCreatedEventHandler += AddCardEvents;
         }
 
         public void OpenConnection()
@@ -26,10 +27,19 @@ namespace flashcards_server.DatabaseManagement
 
         void AddUserEvents(object obj, EventArgs e)
         {
-            ((User.User)obj).NameChangedEventHandler += this.UpdateUserName;
-            ((User.User)obj).EmailChangedEventHandler += this.UpdateUserEmail;
-            ((User.User)obj).SurnameChangedEventHandler += this.UpdateUserSurname;
-            ((User.User)obj).PasswordChangedEventHandler += this.UpdateUserPassword;
+            var user = (User.User)obj;
+            user.NameChangedEventHandler += this.UpdateUserName;
+            user.EmailChangedEventHandler += this.UpdateUserEmail;
+            user.SurnameChangedEventHandler += this.UpdateUserSurname;
+            user.PasswordChangedEventHandler += this.UpdateUserPassword;
+        }
+
+        void AddCardEvents(object obj, EventArgs e)
+        {
+            var card = (Card.Card)obj;
+            card.AnswerChangedEventHandler += this.UpdateCardAnswer;
+            card.QuestionChangedEventHandler += this.UpdateCardQuestion;
+            card.ImageChangedEventHandler += this.UpdateCardPicture;
         }
 
     }
