@@ -45,7 +45,7 @@ namespace flashcards_server.Card
                 InSetChangedEventHandler(this, new InSetEventArgs { inSet = inSet });
         }
 
-        public readonly uint? id;
+        public uint? id { get; private set; }
 
         private string _question;
 
@@ -128,7 +128,7 @@ namespace flashcards_server.Card
             }
         }
 
-        public Card(string answer, string question, Bitmap image, uint inSet, uint id)
+        public Card(string answer, string question, Bitmap image, uint inSet, uint? id = null)
         {
             this.id = id;
             this._answer = answer;
