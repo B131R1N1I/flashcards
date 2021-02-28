@@ -24,13 +24,13 @@ namespace flashcards_server.Card
         protected virtual void OnQuestionChanged(string question)
         {
             if (QuestionChangedEventHandler != null)
-                QuestionChangedEventHandler(question, new QuestionEventArgs { question = question });
+                QuestionChangedEventHandler(this, new QuestionEventArgs { question = question });
         }
 
         protected virtual void OnAnswerChanged(string answer)
         {
             if (AnswerChangedEventHandler != null)
-                AnswerChangedEventHandler(question, new AnswerEventArgs { answer = question });
+                AnswerChangedEventHandler(this, new AnswerEventArgs { answer = question });
         }
 
         protected virtual void OnImageChanged(Bitmap image)
@@ -132,9 +132,9 @@ namespace flashcards_server.Card
         {
             this.id = id;
             this._answer = answer;
-            this.question = question;
-            this.image = image;
-            this.inSet = inSet;
+            this._question = question;
+            this._image = image;
+            this._inSet = inSet;
             OnCardCreated(this);
         }
     }
