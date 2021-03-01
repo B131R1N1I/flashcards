@@ -4,7 +4,7 @@ using System.Net.Http;
 
 namespace flashcards_server.API.Controllers
 {
-    public class PublicCard : HttpResponseMessage
+    public class PublicCard
     {
         public uint? id { get; set; }
         public string question { get; set; }

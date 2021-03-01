@@ -97,16 +97,25 @@ namespace flashcards_server.DatabaseManagement
         public List<Card.Card> GetCardsBySet(Set.Set set)
         {
             var listOfCards = new List<Card.Card>();
-            using (var cmd = new NpgsqlCommand($"SELECT * FROM cards WHERE in_set = {set.id};", conn))
+            using (var cmd = new NpgsqlCommand($"SELECT id, question, answer, picture, in_set FROM cards WHERE in_set = {set.id};", conn))
             {
                 using (var reader = cmd.ExecuteReader())
                 {
+                    if (!reader.HasRows)
+                        throw new NpgsqlException("No Card found by setID");
                     while (reader.Read())
                     {
-                        var imageBytes = (byte[])reader.GetValue(3);
-                        var ms = new MemoryStream(imageBytes);
-                        var bmap = new Bitmap(ms);
-                        listOfCards.Add(new Card.Card(reader.GetString(2), reader.GetString(1), bmap, (uint)reader.GetInt32(4), (uint)reader.GetInt32(0)));
+                        try
+                        {
+                            var imageBytes = (byte[])reader.GetValue(3);
+                            var ms = new MemoryStream(imageBytes);
+                            var bmap = new Bitmap(ms);
+                            listOfCards.Add(new Card.Card(reader.GetString(2), reader.GetString(1), bmap, (uint)reader.GetInt32(4), (uint)reader.GetInt32(0)));
+                        }
+                        catch (Exception)
+                        {
+                            listOfCards.Add(new Card.Card(reader.GetString(2), reader.GetString(1), null, (uint)reader.GetInt32(4), (uint)reader.GetInt32(0)));
+                        }
                     }
                     return listOfCards;
                 }

@@ -20,14 +20,5 @@ namespace flashcards_server
                 {
                     webBuilder.UseStartup<flashcards_server.API.Startup>();
                 });
-
-
-        static void AddUserEvents(object obj, EventArgs e)
-        {
-            ((User.User)obj).NameChangedEventHandler += db.UpdateUserName;
-            ((User.User)obj).EmailChangedEventHandler += db.UpdateUserEmail;
-            ((User.User)obj).SurnameChangedEventHandler += db.UpdateUserSurname;
-            ((User.User)obj).PasswordChangedEventHandler += db.UpdateUserPassword;
-        }
     }
 }

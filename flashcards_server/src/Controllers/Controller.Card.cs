@@ -82,13 +82,31 @@ namespace flashcards_server.API.Controllers
             {
                 var c = db.GetCardById(id);
                 var card = CreatePublicCardFromCard(c);
-                return card;
+                return new PublicCardMessage() { card = card };
             }
             catch (Npgsql.NpgsqlException e)
             {
                 return new SuccessMessageResponseMessage(false, e.Message, HttpStatusCode.NoContent);
             }
+        }
 
+        [HttpGet]
+        [Route("getCardsBySet")]
+        [EnableCors]
+        [Consumes("application/json")]
+        [Produces("application/json")]
+        public List<PublicCard> GetCardsById(uint id)
+        {
+            try
+            {
+                var c = db.GetCardsBySet(db.GetSetById(id));
+                var cards = CreatePublicCardFromCard(c);
+                return cards;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
         [HttpGet]
@@ -103,6 +121,14 @@ namespace flashcards_server.API.Controllers
         Card.Card CreateCardFromMinCard(MinCard minCard)
         {
             return new Card.Card(minCard.answer, minCard.question, minCard.image, minCard.inSet);
+        }
+
+        List<PublicCard> CreatePublicCardFromCard(List<Card.Card> listOfCards)
+        {
+            var l = new List<PublicCard>();
+            foreach (var i in listOfCards)
+                l.Add(CreatePublicCardFromCard(i));
+            return l;
         }
 
         PublicCard CreatePublicCardFromCard(Card.Card card)
