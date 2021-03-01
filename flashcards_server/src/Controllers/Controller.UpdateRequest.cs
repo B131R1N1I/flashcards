@@ -10,13 +10,5 @@ namespace flashcards_server.API.Controllers
         public string what { get; set; }
         public string to { get; set; }
         public Bitmap image { get; set; }
-
-        // [JsonConstructor]
-        // public UpdateRequest(uint id, string what, string to)
-        // {
-        //     this.id = id;
-        //     this.what = what;
-        //     this.to = to;
-        // }
     }
 }
