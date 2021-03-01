@@ -43,7 +43,7 @@ namespace flashcards_server.API.Controllers
             try
             {
                 System.Console.WriteLine(updateRequest.id);
-                var card = db.GetCardByID(updateRequest.id);
+                var card = db.GetCardById(updateRequest.id);
                 System.Console.WriteLine("check after card");
                 var what = updateRequest.what;
                 var to = updateRequest.to;
@@ -63,7 +63,6 @@ namespace flashcards_server.API.Controllers
                         break;
                     default:
                         return new SuccessMessageResponseMessage(false, $"{what} isn't a proper value");
-
                 }
                 return new SuccessMessageResponseMessage(true);
             }
@@ -73,9 +72,42 @@ namespace flashcards_server.API.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("getCardById")]
+        [EnableCors]
+        [Produces("application/json")]
+        public HttpResponseMessage GetCardById(uint id)
+        {
+            try
+            {
+                var c = db.GetCardById(id);
+                var card = CreatePublicCardFromCard(c);
+                return card;
+            }
+            catch (Npgsql.NpgsqlException e)
+            {
+                return new SuccessMessageResponseMessage(false, e.Message, HttpStatusCode.NoContent);
+            }
+
+        }
+
+        [HttpGet]
+        [Route("getImageById")]
+        [EnableCors]
+        public IActionResult GetImageById(uint id)
+        {
+            var converter = new System.Drawing.ImageConverter();
+            return File((byte[])converter.ConvertTo(db.GetCardById(id).image, typeof(byte[])), "image/gif");
+        }
+
         Card.Card CreateCardFromMinCard(MinCard minCard)
         {
             return new Card.Card(minCard.answer, minCard.question, minCard.image, minCard.inSet);
+        }
+
+        PublicCard CreatePublicCardFromCard(Card.Card card)
+        {
+            return new PublicCard(card.id, card.question, card.answer, $"getImageById?id={card.id}", card.inSet);
         }
 
         DatabaseManagement.DatabaseManagement db = flashcards_server.Program.db;

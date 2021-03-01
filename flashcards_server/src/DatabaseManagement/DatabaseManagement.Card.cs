@@ -67,23 +67,27 @@ namespace flashcards_server.DatabaseManagement
         }
 
 
-        public Card.Card GetCardByID(uint id)
+        public Card.Card GetCardById(uint id)
         {
             using (var cmd = new NpgsqlCommand($"SELECT id, question, answer, picture, in_set FROM cards WHERE id = {id};", conn))
             {
                 using (var reader = cmd.ExecuteReader())
                 {
                     reader.Read();
-                    if (((byte[])reader.GetValue(3)).Length > 0)
+                    if (!reader.HasRows)
+                        throw new NpgsqlException("No Card found by ID");
+                    try
                     {
                         var imageBytes = (byte[])reader.GetValue(3);
                         var ms = new MemoryStream(imageBytes);
                         var bmap = new Bitmap(ms);
-
                         return new Card.Card(reader.GetString(2), reader.GetString(1), bmap, (uint)reader.GetInt32(4), (uint)reader.GetInt32(0));
+
                     }
-                    else
+                    catch (Exception)
+                    {
                         return new Card.Card(reader.GetString(2), reader.GetString(1), null, (uint)reader.GetInt32(4), (uint)reader.GetInt32(0));
+                    }
 
 
                 }
