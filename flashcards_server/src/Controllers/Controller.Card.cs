@@ -95,7 +95,7 @@ namespace flashcards_server.API.Controllers
         [EnableCors]
         [Consumes("application/json")]
         [Produces("application/json")]
-        public List<PublicCard> GetCardsById(uint id)
+        public List<PublicCard> GetCardsBySetId(uint id)
         {
             try
             {
