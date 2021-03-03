@@ -1,6 +1,7 @@
 using System;
 using Npgsql;
 using System.Net.Mail;
+using System.Linq;
 
 
 namespace flashcards_server.DatabaseManagement
@@ -15,6 +16,9 @@ namespace flashcards_server.DatabaseManagement
                     throw new NpgsqlException($"username {user.username} is already used");
                 if (!IsUserEmailUnique(user.email))
                     throw new NpgsqlException($"email {user.email} is already used");
+                var passwordValidation = ValidatePassword(user.password);
+                if (!passwordValidation.isCorrect())
+                    throw new NotValidPasswordException("Password is not correct", passwordValidation);
                 using (var cmd = new NpgsqlCommand($"INSERT INTO users (username, email, name, surname, password) VALUES ('{user.username}', '{user.email}', '{user.name}', '{user.surname}', md5('{user.password}'));", conn))
                 {
                     try
@@ -23,9 +27,6 @@ namespace flashcards_server.DatabaseManagement
                     }
                     catch (PostgresException e)
                     {
-                        // some code
-                        // it won't be printing out the error message,
-                        // it will handle it
                         System.Console.WriteLine("-> Cannot add user: " + user.username);
                         System.Console.WriteLine("-> " + e.MessageText);
                     }
@@ -106,6 +107,42 @@ namespace flashcards_server.DatabaseManagement
             {
                 return false;
             }
+        }
+
+        public PasswordValidation ValidatePassword(string password)
+        {
+            var passwordValidation = new PasswordValidation();
+            passwordValidation.lengthMin8 = IsPasswordValidLengthMin8(password);
+            passwordValidation.lengthMax32 = IsPasswordValidLengthMax32(password);
+            passwordValidation.lowerCaseLetter = PasswordContainsLowerCaseLetter(password);
+            passwordValidation.upperCaseLetter = PasswordContainsUpperCaseLetter(password);
+            passwordValidation.number = PasswordContainsADigit(password);
+            return passwordValidation;
+        }
+
+        private bool IsPasswordValidLengthMin8(string password)
+        {
+            return password.Length >= 8;
+        }
+
+        private bool IsPasswordValidLengthMax32(string password)
+        {
+            return password.Length <= 32;
+        }
+
+        private bool PasswordContainsLowerCaseLetter(string password)
+        {
+            return password.Any(char.IsLower);
+        }
+
+        private bool PasswordContainsUpperCaseLetter(string password)
+        {
+            return password.Any(char.IsUpper);
+        }
+
+        private bool PasswordContainsADigit(string passowrd)
+        {
+            return passowrd.Any(char.IsDigit);
         }
 
         public User.User GetUserById(uint id)
