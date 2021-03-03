@@ -30,7 +30,8 @@ namespace flashcards_server.API.Controllers
             }
             catch (Exception e)
             {
-                if (e is FormatException || e is Npgsql.NpgsqlException || e is DatabaseManagement.NotValidPasswordException)
+                if (e is FormatException || e is Npgsql.NpgsqlException || 
+                    e is DatabaseManagement.NotValidPasswordException)
                     return new SuccessMessageResponseMessage(false, e.Message);
                 throw;
             }
