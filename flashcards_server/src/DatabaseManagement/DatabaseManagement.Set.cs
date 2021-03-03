@@ -39,6 +39,12 @@ namespace flashcards_server.DatabaseManagement
                 return _GetListOfSetsByCmd(cmd);
         }
 
+        public List<Set.Set> GetSetsByCreatorOrOwner(User.User user)
+        {
+            using (var cmd = new NpgsqlCommand($"SELECT * FROM sets WHERE creator_id = {user.id} OR owner_id = {user.id};", conn))
+                return _GetListOfSetsByCmd(cmd);
+        }
+
         public List<Set.Set> GetActiveSetsforUser(User.User user)
         {
             using (var cmd = new NpgsqlCommand($"SELECT sets.* FROM sets JOIN active_sets AS acts ON sets.id = acts.set_id " +

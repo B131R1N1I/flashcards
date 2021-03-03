@@ -49,7 +49,23 @@ namespace flashcards_server.API.Controllers
         [Produces("application/json")]
         public Set.Set GetSetById(uint id)
         {
-            return db.GetSetById(id);
+            try
+            {
+                return db.GetSetById(id);
+            }
+            catch (Npgsql.NpgsqlException)
+            {
+                return null;
+            }
+        }
+
+        [HttpGet]
+        [Route("getSetsForMe")]
+        [EnableCors]
+        [Produces("application/json")]
+        public List<Set.Set> GetSetsAvailableForUser(uint id)
+        {
+            return db.GetSetsByCreatorOrOwner(db.GetUserById(id));
         }
 
         [HttpGet]
