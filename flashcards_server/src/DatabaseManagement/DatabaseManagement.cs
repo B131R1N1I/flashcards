@@ -6,26 +6,26 @@ namespace flashcards_server.DatabaseManagement
 {
     public partial class DatabaseManagement
     {
-        public readonly NpgsqlConnection Conn;
+        public readonly NpgsqlConnection conn;
 
         public DatabaseManagement(string server, string user, string password /*temporary*/, string database)
         {
-            Conn = new NpgsqlConnection($"Server={server};User Id={user}; Password={password};Database={database}");
+            conn = new NpgsqlConnection($"Server={server};User Id={user}; Password={password};Database={database}");
             User.User.UserCreatedEventHandler += AddUserEvents;
             Card.Card.CardCreatedEventHandler += AddCardEvents;
         }
 
         public void OpenConnection()
         {
-            Conn.Open();
+            conn.Open();
         }
 
         public void CloseConnection()
         {
-            Conn.Close();
+            conn.Close();
         }
 
-        private void AddUserEvents(object obj, EventArgs e)
+        void AddUserEvents(object obj, EventArgs e)
         {
             var user = (User.User)obj;
             user.NameChangedEventHandler += this.UpdateUserName;
@@ -34,7 +34,7 @@ namespace flashcards_server.DatabaseManagement
             user.PasswordChangedEventHandler += this.UpdateUserPassword;
         }
 
-        private void AddCardEvents(object obj, EventArgs e)
+        void AddCardEvents(object obj, EventArgs e)
         {
             var card = (Card.Card)obj;
             card.AnswerChangedEventHandler += this.UpdateCardAnswer;

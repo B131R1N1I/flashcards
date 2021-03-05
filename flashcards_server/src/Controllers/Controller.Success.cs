@@ -1,18 +1,19 @@
-using System.Net;
+using System;
 using System.Net.Http;
+using System.Net;
 
-namespace flashcards_server.Controllers
+namespace flashcards_server.API.Controllers
 {
     public class SuccessMessageResponseMessage : HttpResponseMessage
     {
         public bool successed { get; set; }
         public string reason { get; set; }
 
-        public SuccessMessageResponseMessage(bool successed, string reason = "", HttpStatusCode code = HttpStatusCode.OK)
+        public SuccessMessageResponseMessage(bool _successed, string _reason = "", HttpStatusCode _code = HttpStatusCode.OK)
         {
-            this.successed = successed;
-            this.reason = reason;
-            this.StatusCode = code;
+            successed = _successed;
+            reason = _reason;
+            this.StatusCode = _code;
         }
     }
 }

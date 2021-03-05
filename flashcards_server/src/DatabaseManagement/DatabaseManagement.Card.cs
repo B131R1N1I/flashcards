@@ -12,7 +12,7 @@ namespace flashcards_server.DatabaseManagement
         public void AddCardToDatabase(Card.Card card)
         {
             using (var cmd = new NpgsqlCommand("INSERT INTO cards (question, answer, picture, in_set)" +
-            $"VALUES ('{card.question}', '{card.answer}', @Image, {card.inSet});", Conn))
+            $"VALUES ('{card.question}', '{card.answer}', @Image, {card.inSet});", conn))
             {
                 NpgsqlParameter parameter = cmd.CreateParameter();
                 parameter.ParameterName = "@Image";
@@ -27,7 +27,7 @@ namespace flashcards_server.DatabaseManagement
 
         protected void UpdateCardQuestion(Card.Card card, string question)
         {
-            using (var cmd = new NpgsqlCommand($"UPDATE cards SET question = '{question}' WHERE id={card.id};", Conn))
+            using (var cmd = new NpgsqlCommand($"UPDATE cards SET question = '{question}' WHERE id={card.id};", conn))
                 cmd.ExecuteNonQuery();
         }
 
@@ -38,7 +38,7 @@ namespace flashcards_server.DatabaseManagement
 
         public void UpdateCardAnswer(Card.Card card, string answer)
         {
-            using (var cmd = new NpgsqlCommand($"UPDATE cards SET answer = '{answer}' WHERE id={card.id};", Conn))
+            using (var cmd = new NpgsqlCommand($"UPDATE cards SET answer = '{answer}' WHERE id={card.id};", conn))
                 cmd.ExecuteNonQuery();
         }
 
@@ -49,7 +49,7 @@ namespace flashcards_server.DatabaseManagement
 
         public void UpdateCardPicture(Card.Card card, Bitmap img)
         {
-            using (var cmd = new NpgsqlCommand($"UPDATE cards SET picture = @Image WHERE id = {card.id};", Conn))
+            using (var cmd = new NpgsqlCommand($"UPDATE cards SET picture = @Image WHERE id = {card.id};", conn))
             {
                 NpgsqlParameter parameter = cmd.CreateParameter();
                 parameter.ParameterName = "@Image";
@@ -69,7 +69,7 @@ namespace flashcards_server.DatabaseManagement
 
         public Card.Card GetCardById(uint id)
         {
-            using (var cmd = new NpgsqlCommand($"SELECT id, question, answer, picture, in_set FROM cards WHERE id = {id};", Conn))
+            using (var cmd = new NpgsqlCommand($"SELECT id, question, answer, picture, in_set FROM cards WHERE id = {id};", conn))
             {
                 using (var reader = cmd.ExecuteReader())
                 {
@@ -97,7 +97,7 @@ namespace flashcards_server.DatabaseManagement
         public List<Card.Card> GetCardsBySet(Set.Set set)
         {
             var listOfCards = new List<Card.Card>();
-            using (var cmd = new NpgsqlCommand($"SELECT id, question, answer, picture, in_set FROM cards WHERE in_set = {set.id};", Conn))
+            using (var cmd = new NpgsqlCommand($"SELECT id, question, answer, picture, in_set FROM cards WHERE in_set = {set.id};", conn))
             {
                 using (var reader = cmd.ExecuteReader())
                 {
@@ -122,7 +122,7 @@ namespace flashcards_server.DatabaseManagement
             }
         }
 
-        private byte[] ConvertImageToBytes(Bitmap img)
+        private Byte[] ConvertImageToBytes(Bitmap img)
         {
             var converter = new ImageConverter();
 

@@ -11,87 +11,94 @@ namespace flashcards_server.DatabaseManagement
         {
             using (var cmd = new NpgsqlCommand($"INSERT INTO sets (name, creator_id, owner_id, created_date, last_modification, is_public) " +
                                                $"VALUES ('{set.name}', {set.creator}, {set.owner}, '{(NpgsqlTypes.NpgsqlDateTime)set.createdDate}', " +
-                                               $"'{(NpgsqlTypes.NpgsqlDateTime)set.lastModificationDate}', {set.isPublic});", Conn))
+                                               $"'{(NpgsqlTypes.NpgsqlDateTime)set.lastModificationDate}', {set.isPublic});", conn))
             {
-                if (IsSetNameUnique(set.name))
-                    cmd.ExecuteNonQuery();
-                else
-                    throw new NpgsqlException($"'{set.name}' is already used set name");
+                try
+                {
+                    if (IsSetNameUnique(set.name))
+                        cmd.ExecuteNonQuery();
+                    else
+                        throw new NpgsqlException($"'{set.name}' is already used set name");
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
             }
         }
 
         public List<Set.Set> GetSetsByOwner(User.User user)
         {
-            using (var cmd = new NpgsqlCommand($"SELECT * FROM sets WHERE owner_id = {user.id};", Conn))
+            using (var cmd = new NpgsqlCommand($"SELECT * FROM sets WHERE owner_id = {user.id};", conn))
                 return _GetListOfSetsByCmd(cmd);
         }
 
         public List<Set.Set> GetSetsByCreator(User.User user)
         {
-            using (var cmd = new NpgsqlCommand($"SELECT * FROM sets WHERE creator_id = {user.id};", Conn))
+            using (var cmd = new NpgsqlCommand($"SELECT * FROM sets WHERE creator_id = {user.id};", conn))
                 return _GetListOfSetsByCmd(cmd);
         }
 
         public List<Set.Set> GetSetsByCreatorOrOwner(User.User user)
         {
-            using (var cmd = new NpgsqlCommand($"SELECT * FROM sets WHERE creator_id = {user.id} OR owner_id = {user.id};", Conn))
+            using (var cmd = new NpgsqlCommand($"SELECT * FROM sets WHERE creator_id = {user.id} OR owner_id = {user.id};", conn))
                 return _GetListOfSetsByCmd(cmd);
         }
 
         public List<Set.Set> GetActiveSetsforUser(User.User user)
         {
             using (var cmd = new NpgsqlCommand($"SELECT sets.* FROM sets JOIN active_sets AS acts ON sets.id = acts.set_id " +
-                                               $"WHERE acts.user_id = {user.id};", Conn))
+                                               $"WHERE acts.user_id = {user.id};", conn))
                 return _GetListOfSetsByCmd(cmd);
         }
 
         public List<Set.Set> GetPublicSets()
         {
-            using (var cmd = new NpgsqlCommand($"SELECT * FROM sets WHERE is_public = true;", Conn))
+            using (var cmd = new NpgsqlCommand($"SELECT * FROM sets WHERE is_public = true;", conn))
                 return _GetListOfSetsByCmd(cmd);
         }
 
         public void MakeSetActive(User.User user, Set.Set set)
         {
             using (var cmd = new NpgsqlCommand($"DELETE FROM active_sets WHERE user_id={user.id} AND set_id={set.id}; " +
-                                               $"INSERT INTO active_sets (user_id, set_id) VALUES ({user.id}, {set.id});", Conn))
+                                               $"INSERT INTO active_sets (user_id, set_id) VALUES ({user.id}, {set.id});", conn))
                 cmd.ExecuteNonQuery();
         }
 
         public void MakeSetInactive(User.User user, Set.Set set)
         {
-            using (var cmd = new NpgsqlCommand($"DELETE FROM active_sets WHERE user_id={user.id} AND set_id={set.id}; ", Conn))
+            using (var cmd = new NpgsqlCommand($"DELETE FROM active_sets WHERE user_id={user.id} AND set_id={set.id}; ", conn))
                 cmd.ExecuteNonQuery();
         }
 
-        public List<Set.Set> GetPublicSetsByNameLike(string name)
+        public List<Set.Set> GetPublicSetsByNameLike(String name)
         {
-            using (var cmd = new NpgsqlCommand($"SELECT * FROM sets where name LIKE '%{name}%' AND is_public = true;", Conn))
+            using (var cmd = new NpgsqlCommand($"SELECT * FROM sets where name LIKE '%{name}%' AND is_public = true;", conn))
                 return _GetListOfSetsByCmd(cmd);
         }
 
-        public Set.Set GetSetByName(string name)
+        public Set.Set GetSetByName(String name)
         {
-            using (var cmd = new NpgsqlCommand($"SELECT * FROM sets where name='{name}' LIMIT 1;", Conn))
+            using (var cmd = new NpgsqlCommand($"SELECT * FROM sets where name='{name}' LIMIT 1;", conn))
                 return _GetSetByCmd(cmd);
         }
 
         public Set.Set GetSetById(uint id)
         {
-            using (var cmd = new NpgsqlCommand($"SELECT * FROM sets WHERE id = {id};", Conn))
+            using (var cmd = new NpgsqlCommand($"SELECT * FROM sets WHERE id = {id};", conn))
                 return _GetSetByCmd(cmd);
         }
 
         public void TransferOwnership(Set.Set set, User.User user)
         {
-            using (var cmd = new NpgsqlCommand($"UPDATE sets SET owner_id = {user.id} WHERE id={set.id};", Conn))
+            using (var cmd = new NpgsqlCommand($"UPDATE sets SET owner_id = {user.id} WHERE id={set.id};", conn))
                 cmd.ExecuteNonQuery();
         }
 
-        public bool IsSetNameUnique(string name)
+        public bool IsSetNameUnique(String name)
         {
-            using (var cmd = new NpgsqlCommand($"SELECT COUNT(*) FROM sets WHERE LOWER(sets.name) = LOWER('{name}');", Conn))
-                return (long)cmd.ExecuteScalar() == 0;
+            using (var cmd = new NpgsqlCommand($"SELECT COUNT(*) FROM sets WHERE LOWER(sets.name) = LOWER('{name}');", conn))
+                return (Int64)cmd.ExecuteScalar() == 0;
         }
 
         private List<Set.Set> _GetListOfSetsByCmd(NpgsqlCommand cmd)
@@ -103,7 +110,7 @@ namespace flashcards_server.DatabaseManagement
                     return listOfSets;
                 while (reader.Read())
                 {
-                    var temp = new object[7];
+                    var temp = new Object[7];
                     reader.GetValues(temp);
                     listOfSets.Add(new Set.Set(reader.GetString(1), Convert.ToUInt32(reader.GetInt32(2)),
                                                Convert.ToUInt32(reader.GetInt32(3)), reader.GetDateTime(4),
@@ -126,9 +133,9 @@ namespace flashcards_server.DatabaseManagement
             }
         }
 
-        public void UpdateSetName(Set.Set set, string name)
+        public void UpdateSetName(Set.Set set, String name)
         {
-            using (var cmd = new NpgsqlCommand($"UPDATE sets SET name = '{name}' WHERE id = {set.id};", Conn))
+            using (var cmd = new NpgsqlCommand($"UPDATE sets SET name = '{name}' WHERE id = {set.id};", conn))
             {
                 cmd.ExecuteNonQuery();
             }
@@ -136,7 +143,7 @@ namespace flashcards_server.DatabaseManagement
 
         public void UpdateSetIsPublic(Set.Set set, bool isPublic)
         {
-            using (var cmd = new NpgsqlCommand($"UPDATE sets SET is_public = {isPublic} WHERE id = {set.id};", Conn))
+            using (var cmd = new NpgsqlCommand($"UPDATE sets SET is_public = {isPublic} WHERE id = {set.id};", conn))
             {
                 cmd.ExecuteNonQuery();
             }

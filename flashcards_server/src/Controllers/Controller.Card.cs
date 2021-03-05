@@ -1,12 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using Microsoft.AspNetCore.Cors;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Cors;
+using System.Net.Http;
+using System.Net;
+using Microsoft.AspNetCore.Authorization;
 
-namespace flashcards_server.Controllers
+namespace flashcards_server.API.Controllers
 {
     [ApiController]
     [Route("fc/card")]
@@ -22,7 +26,7 @@ namespace flashcards_server.Controllers
             try
             {
                 var card = CreateCardFromMinCard(c);
-                _db.AddCardToDatabase(card);
+                db.AddCardToDatabase(card);
                 return new SuccessMessageResponseMessage(true);
             }
             catch (Exception e)
@@ -41,7 +45,7 @@ namespace flashcards_server.Controllers
             try
             {
                 System.Console.WriteLine(updateRequest.id);
-                var card = _db.GetCardById(updateRequest.id);
+                var card = db.GetCardById(updateRequest.id);
                 System.Console.WriteLine("check after card");
                 var what = updateRequest.what;
                 var to = updateRequest.to;
@@ -78,7 +82,7 @@ namespace flashcards_server.Controllers
         {
             try
             {
-                var c = _db.GetCardById(id);
+                var c = db.GetCardById(id);
                 var card = CreatePublicCardFromCard(c);
                 return new PublicCardMessage() { card = card };
             }
@@ -97,7 +101,7 @@ namespace flashcards_server.Controllers
         {
             try
             {
-                var c = _db.GetCardsBySet(_db.GetSetById(id));
+                var c = db.GetCardsBySet(db.GetSetById(id));
                 var cards = CreatePublicCardFromCard(c);
                 return cards;
             }
@@ -113,24 +117,27 @@ namespace flashcards_server.Controllers
         public IActionResult GetImageById(uint id)
         {
             var converter = new System.Drawing.ImageConverter();
-            return File((byte[])converter.ConvertTo(_db.GetCardById(id).image, typeof(byte[])), "image/gif");
+            return File((byte[])converter.ConvertTo(db.GetCardById(id).image, typeof(byte[])), "image/gif");
         }
 
-        private Card.Card CreateCardFromMinCard(MinCard minCard)
+        Card.Card CreateCardFromMinCard(MinCard minCard)
         {
             return new Card.Card(minCard.answer, minCard.question, minCard.image, minCard.inSet);
         }
 
-        private List<PublicCard> CreatePublicCardFromCard(List<Card.Card> listOfCards)
+        List<PublicCard> CreatePublicCardFromCard(List<Card.Card> listOfCards)
         {
-            return listOfCards.Select(CreatePublicCardFromCard).ToList();
+            var l = new List<PublicCard>();
+            foreach (var i in listOfCards)
+                l.Add(CreatePublicCardFromCard(i));
+            return l;
         }
 
-        private PublicCard CreatePublicCardFromCard(Card.Card card)
+        PublicCard CreatePublicCardFromCard(Card.Card card)
         {
             return new PublicCard(card.id, card.question, card.answer, $"getImageById?id={card.id}", card.inSet);
         }
 
-        private readonly DatabaseManagement.DatabaseManagement _db = flashcards_server.Program.db;
+        DatabaseManagement.DatabaseManagement db = flashcards_server.Program.db;
     }
 }

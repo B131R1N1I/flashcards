@@ -82,7 +82,7 @@ namespace flashcards_server.Card
                 }
                 catch (Exception e)
                 {
-                    System.Console.WriteLine("Cannot set card answer to: " + value);
+                    System.Console.WriteLine("Cannod set card answer to: " + value);
                     System.Console.WriteLine(e.Message);
                 }
             }
@@ -102,7 +102,7 @@ namespace flashcards_server.Card
                 }
                 catch (Exception e)
                 {
-                    System.Console.WriteLine("Cannot set card image!! ;(");
+                    System.Console.WriteLine("Canno set card image!! ;(");
                     System.Console.WriteLine(e.Message);
                 }
             }
@@ -122,7 +122,7 @@ namespace flashcards_server.Card
                 }
                 catch (Exception e)
                 {
-                    System.Console.WriteLine("Cannot change in_set property");
+                    System.Console.WriteLine("Canot change in_set property");
                     System.Console.WriteLine(e.Message);
                 }
             }

@@ -1,4 +1,8 @@
-namespace flashcards_server.Controllers
+using System;
+using System.Drawing;
+using System.Net.Http;
+
+namespace flashcards_server.API.Controllers
 {
     public class PublicCard
     {
@@ -8,13 +12,13 @@ namespace flashcards_server.Controllers
         public string image { get; set; }
         public uint inSet { get; set; }
 
-        public PublicCard(uint? id, string question, string answer, string image, uint inSet)
+        public PublicCard(uint? _id, string _question, string _answer, string _image, uint _inSet)
         {
-            this.id = id;
-            this.question = question;
-            this.answer = answer;
-            this.image = image;
-            this.inSet = inSet;
+            id = _id;
+            question = _question;
+            answer = _answer;
+            image = _image;
+            inSet = _inSet;
         }
     }
 }

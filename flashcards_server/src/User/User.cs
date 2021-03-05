@@ -170,7 +170,7 @@ namespace flashcards_server.User
 
         public void RegisterUser(DatabaseManagement.DatabaseManagement database)
         {
-            if (database.Conn.Database == string.Empty)
+            if (database.conn.Database == String.Empty)
                 throw new Npgsql.NpgsqlException("CONNECTION IS NOT OPEN");
             try
             {
@@ -194,7 +194,7 @@ namespace flashcards_server.User
 
         public override bool Equals(object obj)
         {
-            return (obj is User user && user.name == this.name && user.email == this.email);
+            return (obj is User && ((User)obj).name == this.name && ((User)obj).email == this.email);
         }
 
         public override int GetHashCode()

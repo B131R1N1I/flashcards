@@ -1,9 +1,14 @@
+using System;
 using System.Collections.Generic;
-using System.Net;
-using Microsoft.AspNetCore.Cors;
+using System.Linq;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Cors;
+using System.Net.Http;
+using System.Net;
 
-namespace flashcards_server.Controllers
+namespace flashcards_server.API.Controllers
 {
     [ApiController]
     [Route("fc/set")]
@@ -19,7 +24,7 @@ namespace flashcards_server.Controllers
             var set = CreateSetFromMinSet(minSet);
             try
             {
-                _db.AddSetToDatabase(set);
+                db.AddSetToDatabase(set);
                 System.Console.WriteLine($">>> ADDED SET {set.name}");
                 return new SuccessMessageResponseMessage(true);
             }
@@ -35,7 +40,7 @@ namespace flashcards_server.Controllers
         [Produces("application/json")]
         public List<Set.Set> GetAllSets()
         {
-            return _db.GetPublicSets();
+            return db.GetPublicSets();
         }
 
         [HttpGet]
@@ -46,7 +51,7 @@ namespace flashcards_server.Controllers
         {
             try
             {
-                return _db.GetSetById(id);
+                return db.GetSetById(id);
             }
             catch (Npgsql.NpgsqlException)
             {
@@ -60,7 +65,7 @@ namespace flashcards_server.Controllers
         [Produces("application/json")]
         public List<Set.Set> GetSetsAvailableForUser(uint id)
         {
-            return _db.GetSetsByCreatorOrOwner(_db.GetUserById(id));
+            return db.GetSetsByCreatorOrOwner(db.GetUserById(id));
         }
 
         [HttpGet]
@@ -69,7 +74,7 @@ namespace flashcards_server.Controllers
         [Produces("application/json")]
         public List<Set.Set> GetPublicSetsByNameLike(string name)
         {
-            return _db.GetPublicSetsByNameLike(name);
+            return db.GetPublicSetsByNameLike(name);
         }
 
         [HttpPut]
@@ -81,9 +86,9 @@ namespace flashcards_server.Controllers
         {
             try
             {
-                var u = _db.GetUserById(change.userId);
-                var s = _db.GetSetById(change.setId);
-                _db.TransferOwnership(s, u);
+                var u = db.GetUserById(change.userId);
+                var s = db.GetSetById(change.setId);
+                db.TransferOwnership(s, u);
                 return new SuccessMessageResponseMessage(true);
             }
             catch (Npgsql.NpgsqlException e)
@@ -98,6 +103,6 @@ namespace flashcards_server.Controllers
             return new Set.Set(minSet.name, minSet.creator, minSet.owner, minSet.isPublic);
         }
 
-        private readonly DatabaseManagement.DatabaseManagement _db = flashcards_server.Program.db;
+        DatabaseManagement.DatabaseManagement db = flashcards_server.Program.db;
     }
 }

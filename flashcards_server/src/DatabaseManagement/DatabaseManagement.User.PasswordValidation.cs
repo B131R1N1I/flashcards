@@ -12,7 +12,7 @@ namespace flashcards_server.DatabaseManagement
         public bool upperCaseLetter { get; set; }
         public bool number { get; set; }
 
-        public bool IsCorrect()
+        public bool isCorrect()
         {
             return (this.lengthMax32 && this.lengthMin8 &&
             this.lowerCaseLetter && this.number &&
