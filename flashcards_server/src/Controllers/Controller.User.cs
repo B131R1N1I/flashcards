@@ -1,14 +1,11 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.Json;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Cors;
-using System.Net.Http;
 using System.Net;
+using System.Net.Http;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Mvc;
 
-namespace flashcards_server.API.Controllers
+namespace flashcards_server.Controllers
 {
     [ApiController]
     [Route("fc/user")]
@@ -23,9 +20,8 @@ namespace flashcards_server.API.Controllers
         {
             try
             {
-                db.AddUserToDatabase(u);
-                System.Console.WriteLine($">> added {u.username}");
-                var mess = new SuccessMessageResponseMessage(true);
+                _db.AddUserToDatabase(u);
+                System.Console.WriteLine($">> added {u.username}"); 
                 return new SuccessMessageResponseMessage(true);
             }
             catch (Exception e)
@@ -46,13 +42,13 @@ namespace flashcards_server.API.Controllers
         {
             try
             {
-                var user = db.GetUserById(updateRequest.id);
+                var user = _db.GetUserById(updateRequest.id);
                 var to = updateRequest.to;
                 var what = updateRequest.what;
                 switch (what.ToLower())
                 {
                     case "email":
-                        if (!db.IsValidEmail(to))
+                        if (!_db.IsValidEmail(to))
                             throw new FormatException($"{to} isn't correct email format.");
                         user.email = to;
                         break;
@@ -93,13 +89,13 @@ namespace flashcards_server.API.Controllers
 
             try
             {
-                return CreatePublicUserResponseMessage(db.GetUserById(id));
+                return CreatePublicUserResponseMessage(_db.GetUserById(id));
             }
             catch (Npgsql.NpgsqlException)
             {
                 try
                 {
-                    return CreatePublicUserResponseMessage(db.GetUserByUsername(username));
+                    return CreatePublicUserResponseMessage(_db.GetUserByUsername(username));
                 }
                 catch (Npgsql.NpgsqlException)
                 {
@@ -112,10 +108,10 @@ namespace flashcards_server.API.Controllers
         [Route("isEmailAlreadyUsed")]
         [EnableCors]
         [Produces("application/json")]
-        public HttpResponseMessage isEmailUsed(string email)
+        public HttpResponseMessage IsEmailUsed(string email)
         {
-            if (db.IsValidEmail(email))
-                return new IsAleradyUsedResponseMessage() { isAlreadyUsed = !db.IsUserEmailUnique(email) };
+            if (_db.IsValidEmail(email))
+                return new IsAlreadyUsedResponseMessage() { isAlreadyUsed = !_db.IsUserEmailUnique(email) };
             else
                 return new SuccessMessageResponseMessage(false,
                                                          $"{email} isn't correct email format.",
@@ -126,9 +122,9 @@ namespace flashcards_server.API.Controllers
         [Route("isUsernameAlreadyUsed")]
         [EnableCors]
         [Produces("application/json")]
-        public HttpResponseMessage isUsernameUsed(string username)
+        public HttpResponseMessage IsUsernameUsed(string username)
         {
-            return new IsAleradyUsedResponseMessage() { isAlreadyUsed = !db.IsUserUsernameUnique(username) };
+            return new IsAlreadyUsedResponseMessage() { isAlreadyUsed = !_db.IsUserUsernameUnique(username) };
         }
 
         private PublicUserResponseMessage CreatePublicUserResponseMessage(User.User u)
@@ -136,6 +132,6 @@ namespace flashcards_server.API.Controllers
             return new PublicUserResponseMessage() { user = new PublicUser { username = u.username, id = u.id } };
         }
 
-        DatabaseManagement.DatabaseManagement db = flashcards_server.Program.db;
+        private readonly DatabaseManagement.DatabaseManagement _db = flashcards_server.Program.db;
     }
 }

@@ -4,21 +4,21 @@ using Microsoft.Extensions.Hosting;
 
 namespace flashcards_server
 {
-    static class Program
+    internal static class Program
     {
-        public static DatabaseManagement.DatabaseManagement db = new DatabaseManagement.DatabaseManagement("localhost", "flashcards_app", "fc_app", "flashcards");
+        public static readonly DatabaseManagement.DatabaseManagement db = new DatabaseManagement.DatabaseManagement("localhost", "flashcards_app", "fc_app", "flashcards");
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             db.OpenConnection();
             CreateHostBuilder(args).Build().Run();
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
+        private static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseStartup<flashcards_server.API.Startup>();
+                    webBuilder.UseStartup<Startup>();
                 });
     }
 }

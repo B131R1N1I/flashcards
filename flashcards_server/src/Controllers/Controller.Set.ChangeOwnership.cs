@@ -1,6 +1,4 @@
-using System;
-
-namespace flashcards_server.API.Controllers
+namespace flashcards_server.Controllers
 {
     public class ChangeOwnership
     {

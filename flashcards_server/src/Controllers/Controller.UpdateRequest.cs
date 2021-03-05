@@ -1,8 +1,6 @@
-using System;
-using System.Text.Json.Serialization;
 using System.Drawing;
 
-namespace flashcards_server.API.Controllers
+namespace flashcards_server.Controllers
 {
     public class UpdateRequest
     {
