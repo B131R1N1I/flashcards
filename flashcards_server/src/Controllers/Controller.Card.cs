@@ -1,14 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text.Json;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Cors;
-using System.Net.Http;
 using System.Net;
+using System.Net.Http;
+using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Mvc;
 
-namespace flashcards_server.API.Controllers
+namespace flashcards_server.Controllers
 {
     [ApiController]
     [Route("fc/card")]

@@ -1,8 +1,7 @@
-using System;
-using System.Net.Http;
 using System.Net;
+using System.Net.Http;
 
-namespace flashcards_server.API.Controllers
+namespace flashcards_server.Controllers
 {
     public class SuccessMessageResponseMessage : HttpResponseMessage
     {

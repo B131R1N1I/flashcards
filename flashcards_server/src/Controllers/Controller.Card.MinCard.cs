@@ -1,7 +1,6 @@
-using System;
 using System.Drawing;
 
-namespace flashcards_server.API.Controllers
+namespace flashcards_server.Controllers
 {
     public class MinCard
     {

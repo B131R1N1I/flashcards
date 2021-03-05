@@ -18,7 +18,7 @@ namespace flashcards_server
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseStartup<flashcards_server.API.Startup>();
+                    webBuilder.UseStartup<Startup>();
                 });
     }
 }
