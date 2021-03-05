@@ -1,10 +1,16 @@
-using System.Net.Http;
+using System;
 
 namespace flashcards_server.Controllers
 {
-    public class PublicUserResponseMessage : HttpResponseMessage
+    public class PublicUser
     {
-        public uint? id { get; set; } = null;
-        public string username { get; set; } = "";
+        public uint? id { get; set; }
+        public string username { get; set; }
+
+        public PublicUser(uint? id, string username)
+        {
+            this.id = id;
+            this.username = username;
+        }
     }
 }

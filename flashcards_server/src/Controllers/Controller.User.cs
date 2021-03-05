@@ -26,7 +26,7 @@ namespace flashcards_server.Controllers
             }
             catch (Exception e)
             {
-                if (e is FormatException || e is Npgsql.NpgsqlException || 
+                if (e is FormatException || e is Npgsql.NpgsqlException ||
                     e is DatabaseManagement.NotValidPasswordException)
                     return new SuccessMessageResponseMessage(false, e.Message);
                 throw;
@@ -129,7 +129,7 @@ namespace flashcards_server.Controllers
 
         private PublicUserResponseMessage CreatePublicUserResponseMessage(User.User u)
         {
-            return new PublicUserResponseMessage { id = u.id, username = u.username };
+            return new PublicUserResponseMessage { user = new PublicUser(u.id, u.username) };
         }
 
         DatabaseManagement.DatabaseManagement db = flashcards_server.Program.db;
