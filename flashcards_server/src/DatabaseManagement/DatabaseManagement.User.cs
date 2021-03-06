@@ -17,9 +17,9 @@ namespace flashcards_server.DatabaseManagement
                 if (!IsUserEmailUnique(user.email))
                     throw new NpgsqlException($"email {user.email} is already used");
                 var passwordValidation = ValidatePassword(user.password);
-                if (!passwordValidation.isCorrect())
+                if (!passwordValidation.IsCorrect())
                     throw new NotValidPasswordException("Password is not correct", passwordValidation);
-                using (var cmd = new NpgsqlCommand($"INSERT INTO users (username, email, name, surname, password) VALUES ('{user.username}', '{user.email}', '{user.name}', '{user.surname}', md5('{user.password}'));", conn))
+                using (var cmd = new NpgsqlCommand($"INSERT INTO users (username, email, name, surname, password) VALUES ('{user.username}', '{user.email}', '{user.name}', '{user.surname}', md5('{user.password}'));", Conn))
                 {
                     try
                     {
@@ -40,7 +40,7 @@ namespace flashcards_server.DatabaseManagement
 
         protected void UpdateUserEmail(User.User user, string newEmail)
         {
-            using (var cmd = new NpgsqlCommand($"UPDATE users SET email = '{newEmail}' WHERE id={user.id}", conn))
+            using (var cmd = new NpgsqlCommand($"UPDATE users SET email = '{newEmail}' WHERE id={user.id}", Conn))
                 cmd.ExecuteNonQuery();
         }
 
@@ -51,7 +51,7 @@ namespace flashcards_server.DatabaseManagement
 
         protected void UpdateUserName(User.User user, string newName)
         {
-            using (var cmd = new NpgsqlCommand($"UPDATE users SET name = '{newName}' WHERE id={user.id}", conn))
+            using (var cmd = new NpgsqlCommand($"UPDATE users SET name = '{newName}' WHERE id={user.id}", Conn))
                 cmd.ExecuteNonQuery();
         }
 
@@ -62,7 +62,7 @@ namespace flashcards_server.DatabaseManagement
 
         protected void UpdateUserSurname(User.User user, string newSurname)
         {
-            using (var cmd = new NpgsqlCommand($"UPDATE users SET surname = '{newSurname}' WHERE id={user.id}", conn))
+            using (var cmd = new NpgsqlCommand($"UPDATE users SET surname = '{newSurname}' WHERE id={user.id}", Conn))
                 cmd.ExecuteNonQuery();
         }
 
@@ -73,7 +73,7 @@ namespace flashcards_server.DatabaseManagement
 
         protected void UpdateUserPassword(User.User user, string newPassword)
         {
-            using (var cmd = new NpgsqlCommand($"UPDATE users SET password = md5('{newPassword}') WHERE id={user.id}", conn))
+            using (var cmd = new NpgsqlCommand($"UPDATE users SET password = md5('{newPassword}') WHERE id={user.id}", Conn))
                 cmd.ExecuteNonQuery();
         }
 
@@ -84,7 +84,7 @@ namespace flashcards_server.DatabaseManagement
 
         public bool IsUserUsernameUnique(string username)
         {
-            using (var cmd = new NpgsqlCommand($"SELECT COUNT(*) FROM users WHERE LOWER(users.username) = LOWER('{username}')", conn))
+            using (var cmd = new NpgsqlCommand($"SELECT COUNT(*) FROM users WHERE LOWER(users.username) = LOWER('{username}')", Conn))
                 return (Int64)cmd.ExecuteScalar() == 0;
         }
 
@@ -92,7 +92,7 @@ namespace flashcards_server.DatabaseManagement
         {
             if (!IsValidEmail(email))
                 throw new FormatException($"ERROR: '{email}' isn't a correct mail address");
-            using (var cmd = new NpgsqlCommand($"SELECT COUNT(*) FROM users WHERE LOWER(users.email) = LOWER('{email}')", conn))
+            using (var cmd = new NpgsqlCommand($"SELECT COUNT(*) FROM users WHERE LOWER(users.email) = LOWER('{email}')", Conn))
                 return (Int64)cmd.ExecuteScalar() == 0;
         }
 
@@ -147,19 +147,19 @@ namespace flashcards_server.DatabaseManagement
 
         public User.User GetUserById(uint id)
         {
-            using (var cmd = new NpgsqlCommand($"SELECT * FROM users WHERE id = {id} LIMIT 1;", conn))
+            using (var cmd = new NpgsqlCommand($"SELECT * FROM users WHERE id = {id} LIMIT 1;", Conn))
                 return _GetUserByCmd(cmd);
         }
 
         public User.User GetUserByUsername(string username)
         {
-            using (var cmd = new NpgsqlCommand($"SELECT * FROM users WHERE username = '{username}' LIMIT 1;", conn))
+            using (var cmd = new NpgsqlCommand($"SELECT * FROM users WHERE username = '{username}' LIMIT 1;", Conn))
                 return _GetUserByCmd(cmd);
         }
 
         public User.User GetUserByEmail(string email)
         {
-            using (var cmd = new NpgsqlCommand($"SELECT * FROM users WHERE email = '{email}' LIMIT 1;", conn))
+            using (var cmd = new NpgsqlCommand($"SELECT * FROM users WHERE email = '{email}' LIMIT 1;", Conn))
                 return _GetUserByCmd(cmd);
         }
 
@@ -178,7 +178,7 @@ namespace flashcards_server.DatabaseManagement
 
         public bool PasswordMatch(User.User user, string password)
         {
-            using (var cmd = new NpgsqlCommand($"SELECT md5('{password}') = password FROM users WHERE id = {user.id};", conn))
+            using (var cmd = new NpgsqlCommand($"SELECT md5('{password}') = password FROM users WHERE id = {user.id};", Conn))
             {
                 using (var output = cmd.ExecuteReader())
                 {

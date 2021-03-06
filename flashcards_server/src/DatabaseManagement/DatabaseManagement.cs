@@ -6,23 +6,23 @@ namespace flashcards_server.DatabaseManagement
 {
     public partial class DatabaseManagement
     {
-        public readonly NpgsqlConnection conn;
+        public readonly NpgsqlConnection Conn;
 
         public DatabaseManagement(string server, string user, string password /*temporary*/, string database)
         {
-            conn = new NpgsqlConnection($"Server={server};User Id={user}; Password={password};Database={database}");
+            Conn = new NpgsqlConnection($"Server={server};User Id={user}; Password={password};Database={database}");
             User.User.UserCreatedEventHandler += AddUserEvents;
             Card.Card.CardCreatedEventHandler += AddCardEvents;
         }
 
         public void OpenConnection()
         {
-            conn.Open();
+            Conn.Open();
         }
 
         public void CloseConnection()
         {
-            conn.Close();
+            Conn.Close();
         }
 
         void AddUserEvents(object obj, EventArgs e)

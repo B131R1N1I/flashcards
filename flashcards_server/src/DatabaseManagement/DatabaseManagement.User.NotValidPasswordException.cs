@@ -6,9 +6,9 @@ namespace flashcards_server.DatabaseManagement
     {
         public PasswordValidation passwordValidation { get; set; }
 
-        public NotValidPasswordException(string _message, PasswordValidation _passwordValidation) : base(_message)
+        public NotValidPasswordException(string message, PasswordValidation passwordValidation) : base(message)
         {
-            passwordValidation = _passwordValidation;
+            this.passwordValidation = passwordValidation;
         }
     }
 }
