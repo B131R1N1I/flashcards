@@ -168,20 +168,6 @@ namespace flashcards_server.User
 
         public User(string username, string email, string name, string surname, string password, int id) : this(username, email, name, surname, password, (uint?)id) { }
 
-        public void RegisterUser(DatabaseManagement.DatabaseManagement database)
-        {
-            if (database.conn.Database == String.Empty)
-                throw new Npgsql.NpgsqlException("CONNECTION IS NOT OPEN");
-            try
-            {
-                database.AddUserToDatabase(this);
-            }
-            catch (ArgumentException)
-            {
-                throw;
-            }
-        }
-
         static public User GetUser(/* args */)
         {
             throw new NotImplementedException("Connection with database has not been created yet");
