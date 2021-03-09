@@ -27,7 +27,7 @@ namespace flashcards_server.DatabaseManagement
 
         void AddUserEvents(object obj, EventArgs e)
         {
-            var user = (User.User)obj;
+            var user = obj as User.User;
             user.NameChangedEventHandler += this.UpdateUserName;
             user.EmailChangedEventHandler += this.UpdateUserEmail;
             user.SurnameChangedEventHandler += this.UpdateUserSurname;
@@ -36,7 +36,7 @@ namespace flashcards_server.DatabaseManagement
 
         void AddCardEvents(object obj, EventArgs e)
         {
-            var card = (Card.Card)obj;
+            var card = obj as Card.Card;
             card.AnswerChangedEventHandler += this.UpdateCardAnswer;
             card.QuestionChangedEventHandler += this.UpdateCardQuestion;
             card.ImageChangedEventHandler += this.UpdateCardPicture;
