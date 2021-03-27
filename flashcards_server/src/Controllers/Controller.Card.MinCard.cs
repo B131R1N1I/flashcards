@@ -6,7 +6,7 @@ namespace flashcards_server.Controllers
     {
         public string question { get; set; }
         public string answer { get; set; }
-        public Bitmap image { get; set; }
-        public uint inSet { get; set; }
+        public byte[] image { get; set; }
+        public int inSet { get; set; }
     }
 }

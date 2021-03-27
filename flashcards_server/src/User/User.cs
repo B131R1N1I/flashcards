@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 
@@ -6,173 +7,33 @@ namespace flashcards_server.User
 {
     public partial class User
     {
-        public static event EventHandler UserCreatedEventHandler;
-        public event EventHandler<UsernameEventArgs> UsernameChangedEventHandler;
-        public event EventHandler<EmailEventArgs> EmailChangedEventHandler;
-        public event EventHandler<NameEventArgs> NameChangedEventHandler;
-        public event EventHandler<SurnameEventArgs> SurnameChangedEventHandler;
-        public event EventHandler<PasswordEventArgs> PasswordChangedEventHandler;
-
-        protected virtual void OnUserCreated(User user)
+        public User()
         {
-            if (UserCreatedEventHandler != null)
-                UserCreatedEventHandler(this, new EventArgs());
+            sets = new HashSet<Set.Set>();
         }
 
-        protected virtual void OnUsernameChanged(string username)
-        {
-            if (UsernameChangedEventHandler != null)
-                UsernameChangedEventHandler(this, new UsernameEventArgs { username = username });
-        }
+        public int id { get; set; }
+        public string username { get; set; }
+        public string email { get; set; }
+        public string name { get; set; }
+        public string surname { get; set; }
+        public string password { get; set; }
+        public bool active { get; set; }
 
-        protected virtual void OnPasswordChanged(string password)
-        {
-            if (PasswordChangedEventHandler != null)
-                PasswordChangedEventHandler(this, new PasswordEventArgs { password = password });
-        }
-
-        protected virtual void OnEmailChanged(string email)
-        {
-            if (EmailChangedEventHandler != null)
-                EmailChangedEventHandler(this, new EmailEventArgs { email = email });
-        }
-
-        protected virtual void OnNameChanged(string name)
-        {
-            if (NameChangedEventHandler != null)
-                NameChangedEventHandler(this, new NameEventArgs { name = name });
-        }
-
-        protected virtual void OnSurnameChanged(string surname)
-        {
-            if (SurnameChangedEventHandler != null)
-                SurnameChangedEventHandler(this, new SurnameEventArgs { surname = surname });
-        }
-
-        // private uint _id;
-        public uint? id { get; }
-
-        private string _username;
-        public string username
-        {
-            get => _username;
-            set
-            {
-                try
-                {
-                    OnUsernameChanged(value);
-                    _username = value;
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("Couldn't change username to: " + value);
-                    Console.WriteLine(e.Message);
-                    throw;
-                }
-            }
-        }
-        private string _email;
-
-        public string email
-        {
-            get => _email;
-            set
-            {
-                try
-                {
-                    OnEmailChanged(value);
-                    _email = value;
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("Cannot set email to: " + value);
-                    Console.WriteLine(e.Message);
-                    throw;
-                }
-            }
-        }
-
-        private string _name;
-
-        public string name
-        {
-            get => _name;
-            set
-            {
-                try
-                {
-                    OnNameChanged(value);
-                    _name = value;
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("Cannot set name to: " + value);
-                    Console.WriteLine(e.Message);
-                    throw;
-                }
-            }
-        }
-
-        private string _surname;
-
-        public string surname
-        {
-            get => _surname;
-            set
-            {
-                try
-                {
-                    OnSurnameChanged(value);
-                    _surname = value;
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("Cannot set name to: " + surname);
-                    Console.WriteLine(e.Message);
-                    throw;
-                }
-            }
-        }
-
-        private string _password; // idk yet if it should be a string
-
-        public string password
-        {
-            get => _password;
-            set
-            {
-                try
-                {
-                    OnPasswordChanged(value);
-                    _password = value;
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("Cannot set passowrd ");
-                    Console.WriteLine(e.Message);
-                    throw;
-                }
-            }
-        }
+        public virtual ICollection<Set.Set> sets { get; set; }
+        
+        
         [JsonConstructor]
-        public User(string username, string email, string name, string surname, string password, uint? id = null)
+        public User(string username, string email, string name, string surname, string password, int id)
         {
             this.id = id;
-            this._username = username;
-            this._email = email;
-            this._name = name;
-            this._surname = surname;
-            this._password = password;
-            OnUserCreated(this);
+            this.username = username;
+            this.email = email;
+            this.name = name;
+            this.surname = surname;
+            this.password = password;
         }
-
-        public User(string username, string email, string name, string surname, string password, int id) : this(username, email, name, surname, password, (uint?)id) { }
-
-        static public User GetUser(/* args */)
-        {
-            throw new NotImplementedException("Connection with database has not been created yet");
-        }
-
+        
         public override string ToString()
         {
             return $"User [{id}: ({username}, {email}, {name}, {surname})]";
@@ -187,5 +48,8 @@ namespace flashcards_server.User
         {
             return base.GetHashCode();
         }
+        
     }
+    
+    
 }

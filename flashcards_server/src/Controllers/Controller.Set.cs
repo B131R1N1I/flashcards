@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
@@ -19,7 +21,12 @@ namespace flashcards_server.Controllers
             var set = CreateSetFromMinSet(minSet);
             try
             {
-                db.AddSetToDatabase(set);
+                using (var context = new flashcardsContext())
+                {
+                    context.sets.Add(set);
+                    context.SaveChanges();
+                }
+
                 System.Console.WriteLine($">>> ADDED SET {set.name}");
                 return new SuccessMessageResponseMessage(true);
             }
@@ -35,7 +42,8 @@ namespace flashcards_server.Controllers
         [Produces("application/json")]
         public List<Set.Set> GetAllSets()
         {
-            return db.GetPublicSets();
+            using (var context = new flashcardsContext())
+                return context.sets.Where(s => s.isPublic == true).ToList();
         }
 
         [HttpGet]
@@ -44,14 +52,8 @@ namespace flashcards_server.Controllers
         [Produces("application/json")]
         public Set.Set GetSetById(uint id)
         {
-            try
-            {
-                return db.GetSetById(id);
-            }
-            catch (Npgsql.NpgsqlException)
-            {
-                return null;
-            }
+            using var context = new flashcardsContext();
+                return context.sets.First(s => s.id == id);
         }
 
         [HttpGet]
@@ -60,7 +62,8 @@ namespace flashcards_server.Controllers
         [Produces("application/json")]
         public List<Set.Set> GetSetsAvailableForUser(uint id)
         {
-            return db.GetSetsByCreatorOrOwner(db.GetUserById(id));
+            using var context = new flashcardsContext();
+            return context.sets.Where(s => s.ownerId == id || s.creatorId == id).ToList();
         }
 
         [HttpGet]
@@ -69,7 +72,10 @@ namespace flashcards_server.Controllers
         [Produces("application/json")]
         public List<Set.Set> GetPublicSetsByNameLike(string name)
         {
-            return db.GetPublicSetsByNameLike(name);
+            using (var context = new flashcardsContext())
+            {
+                return context.sets.Where(s => s.name.Contains(name)).ToList();
+            }
         }
 
         [HttpPut]
@@ -81,12 +87,17 @@ namespace flashcards_server.Controllers
         {
             try
             {
-                var u = db.GetUserById(change.userId);
-                var s = db.GetSetById(change.setId);
-                db.TransferOwnership(s, u);
+                using var context = new flashcardsContext();
+                
+                var u = context.users.First(u => u.id == change.userId); 
+                // db.GetUserById(change.userId);
+                var s = context.sets.First(s => s.id == change.setId);
+                // db.GetSetById(change.setId);
+                s.ownerId = u.id;
+                // db.TransferOwnership(s, u);
                 return new SuccessMessageResponseMessage(true);
             }
-            catch (Npgsql.NpgsqlException e)
+            catch (ArgumentNullException e)
             {
                 return new SuccessMessageResponseMessage(false, e.Message, HttpStatusCode.BadRequest);
             }
@@ -98,6 +109,5 @@ namespace flashcards_server.Controllers
             return new Set.Set(minSet.name, minSet.creator, minSet.owner, minSet.isPublic);
         }
 
-        DatabaseManagement.DatabaseManagement db = flashcards_server.Program.db;
     }
 }

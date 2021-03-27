@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using Microsoft.AspNetCore.Cors;
@@ -20,9 +21,13 @@ namespace flashcards_server.Controllers
         {
             try
             {
-                var card = CreateCardFromMinCard(c);
-                db.AddCardToDatabase(card);
-                return new SuccessMessageResponseMessage(true);
+                using (var context = new flashcardsContext())
+                {
+                    context.cards.Add(CreateCardFromMinCard(c));
+                    context.SaveChanges();
+
+                    return new SuccessMessageResponseMessage(true);
+                }
             }
             catch (Exception e)
             {
@@ -40,28 +45,34 @@ namespace flashcards_server.Controllers
             try
             {
                 System.Console.WriteLine(updateRequest.id);
-                var card = db.GetCardById(updateRequest.id);
-                System.Console.WriteLine("check after card");
-                var what = updateRequest.what;
-                var to = updateRequest.to;
-                System.Console.WriteLine(card);
-                System.Console.WriteLine(what);
-                System.Console.WriteLine(to);
-                switch (what.ToLower())
+                using (var context = new flashcardsContext())
                 {
-                    case "question":
-                        card.question = to;
-                        break;
-                    case "answer":
-                        card.answer = to;
-                        break;
-                    case "image":
-                        card.image = updateRequest.image;
-                        break;
-                    default:
-                        return new SuccessMessageResponseMessage(false, $"{what} isn't a proper value");
+                    var card = context.cards.First(c => c.id == updateRequest.id);
+
+                    //db.GetCardById(updateRequest.id);
+                    System.Console.WriteLine("check after card");
+                    var what = updateRequest.what;
+                    var to = updateRequest.to;
+                    System.Console.WriteLine(card);
+                    System.Console.WriteLine(what);
+                    System.Console.WriteLine(to);
+                    switch (what.ToLower())
+                    {
+                        case "question":
+                            card.question = to;
+                            break;
+                        case "answer":
+                            card.answer = to;
+                            break;
+                        case "image":
+                            card.picture = updateRequest.image;
+                            break;
+                        default:
+                            return new SuccessMessageResponseMessage(false, $"{what} isn't a proper value");
+                    }
+
+                    return new SuccessMessageResponseMessage(true);
                 }
-                return new SuccessMessageResponseMessage(true);
             }
             catch (Exception e)
             {
@@ -77,12 +88,18 @@ namespace flashcards_server.Controllers
         {
             try
             {
-                var c = db.GetCardById(id);
-                var card = CreatePublicCardFromCard(c);
-                return new PublicCardMessage() { card = card };
+                using (var context = new flashcardsContext())
+                {
+                    var tempCard = context.cards.First(c => c.id == id);
+
+                    //db.GetCardById(id);
+                    var card = CreatePublicCardFromCard(tempCard);
+                    return new PublicCardMessage() {card = card};
+                }
             }
-            catch (Npgsql.NpgsqlException e)
+            catch (ArgumentNullException e)
             {
+                
                 return new SuccessMessageResponseMessage(false, e.Message, HttpStatusCode.NoContent);
             }
         }
@@ -96,9 +113,12 @@ namespace flashcards_server.Controllers
         {
             try
             {
-                var c = db.GetCardsBySet(db.GetSetById(id));
-                var cards = CreatePublicCardFromCard(c);
-                return cards;
+                using (var context = new flashcardsContext())
+                {
+                    var temp_card = context.cards.Where(c => c.inSet == id).ToList();
+                    var cards = CreatePublicCardFromCard(temp_card);
+                    return cards;
+                }
             }
             catch (Exception)
             {
@@ -111,8 +131,11 @@ namespace flashcards_server.Controllers
         [EnableCors]
         public IActionResult GetImageById(uint id)
         {
-            var converter = new System.Drawing.ImageConverter();
-            return File((byte[])converter.ConvertTo(db.GetCardById(id).image, typeof(byte[])), "image/gif");
+            using (var context = new flashcardsContext())
+            {
+                var converter = new System.Drawing.ImageConverter();
+                return File((byte[]) converter.ConvertTo(context.cards.First(c => c.id == id).picture, typeof(byte[])), "image/gif");
+            }
         }
 
         Card.Card CreateCardFromMinCard(MinCard minCard)
@@ -130,9 +153,8 @@ namespace flashcards_server.Controllers
 
         PublicCard CreatePublicCardFromCard(Card.Card card)
         {
-            return new PublicCard(card.id, card.question, card.answer, $"getImageById?id={card.id}", card.inSet);
+            var href = (card.picture is not null ? $"getImageById?id={card.id}" : null);
+            return new PublicCard(card.id, card.question, card.answer, href, card.inSet);
         }
-
-        DatabaseManagement.DatabaseManagement db = flashcards_server.Program.db;
     }
 }

@@ -2,7 +2,7 @@ using System;
 
 namespace flashcards_server.Set
 {
-	public partial class Set
+	public sealed partial class Set
 	{
 		public class UserEventArgs : EventArgs
 		{

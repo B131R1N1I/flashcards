@@ -6,11 +6,10 @@ namespace flashcards_server
 {
     static class Program
     {
-        public static DatabaseManagement.DatabaseManagement db = new DatabaseManagement.DatabaseManagement("localhost", "flashcards_app", "fc_app", "flashcards");
 
         static void Main(string[] args)
         {
-            db.OpenConnection();
+
             CreateHostBuilder(args).Build().Run();
         }
 

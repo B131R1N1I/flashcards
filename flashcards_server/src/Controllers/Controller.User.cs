@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Data.Common;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using Microsoft.AspNetCore.Cors;
@@ -19,16 +22,21 @@ namespace flashcards_server.Controllers
         {
             try
             {
-                db.AddUserToDatabase(u);
+                using var context = new flashcardsContext();
+                if (!IsValidEmail(u.email))
+                    throw new FormatException("Email format is not valid.");
+                if (context.users.Any(user => user.username == u.username | user.email == u.email))
+                    if (context.users.Any(user => user.username == u.username))
+                        throw new FormatException("Username is already used");
+                    else throw new FormatException("Email is already used");
+                context.users.Add(u);
+                context.SaveChanges();
                 System.Console.WriteLine($">> added {u.username}");
-                var mess = new SuccessMessageResponseMessage(true);
                 return new SuccessMessageResponseMessage(true);
             }
-            catch (Exception e)
+            catch (FormatException e)
             {
-                if (e is FormatException || e is Npgsql.NpgsqlException ||
-                    e is DatabaseManagement.NotValidPasswordException)
-                    return new SuccessMessageResponseMessage(false, e.Message);
+                return new SuccessMessageResponseMessage(false, e.Message);
                 throw;
             }
         }
@@ -42,13 +50,16 @@ namespace flashcards_server.Controllers
         {
             try
             {
-                var user = db.GetUserById(updateRequest.id);
+                using (var context = new flashcardsContext())
+                {
+                    var user = context.users.First(u => u.id == updateRequest.id);
+                
                 var to = updateRequest.to;
                 var what = updateRequest.what;
                 switch (what.ToLower())
                 {
                     case "email":
-                        if (!db.IsValidEmail(to))
+                        if (IsValidEmail(to))
                             throw new FormatException($"{to} isn't correct email format.");
                         user.email = to;
                         break;
@@ -63,9 +74,9 @@ namespace flashcards_server.Controllers
                         break;
                     default:
                         return new SuccessMessageResponseMessage(false,
-                                                                 $"'{what}' is not valid property",
-                                                                 HttpStatusCode.BadRequest);
-
+                            $"'{what}' is not valid property",
+                            HttpStatusCode.BadRequest);
+                }
                 }
                 return new SuccessMessageResponseMessage(true);
             }
@@ -79,6 +90,15 @@ namespace flashcards_server.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("getUsers/")]
+        [EnableCors]
+        [Produces("application/json")]
+        public List<PublicUser> getPublicUsers()
+        {
+            using (var context = new flashcardsContext())
+                return context.users.Cast<PublicUser>().ToList();
+        }
 
         [HttpGet]
         [Route("getuser/")]
@@ -89,15 +109,17 @@ namespace flashcards_server.Controllers
 
             try
             {
-                return CreatePublicUserResponseMessage(db.GetUserById(id));
+                using var context = new flashcardsContext();
+                return CreatePublicUserResponseMessage(context.users.First(u => u.id == id));
             }
-            catch (Npgsql.NpgsqlException)
+            catch (Exception)
             {
                 try
                 {
-                    return CreatePublicUserResponseMessage(db.GetUserByUsername(username));
+                    using var context = new flashcardsContext();
+                    return CreatePublicUserResponseMessage(context.users.First(u => u.username == username));
                 }
-                catch (Npgsql.NpgsqlException)
+                catch (Exception)
                 {
                     return new HttpResponseMessage(HttpStatusCode.NoContent);
                 }
@@ -108,23 +130,29 @@ namespace flashcards_server.Controllers
         [Route("isEmailAlreadyUsed")]
         [EnableCors]
         [Produces("application/json")]
-        public HttpResponseMessage isEmailUsed(string email)
+        public HttpResponseMessage IsEmailUsed(string email)
         {
-            if (db.IsValidEmail(email))
-                return new IsAleradyUsedResponseMessage() { isAlreadyUsed = !db.IsUserEmailUnique(email) };
+            if (IsValidEmail(email))
+            {
+                using var context = new flashcardsContext();
+                return new IsAleradyUsedResponseMessage() { isAlreadyUsed = context.users.Any(u => u.email == email)};
+            }
+
             else
                 return new SuccessMessageResponseMessage(false,
-                                                         $"{email} isn't correct email format.",
-                                                         HttpStatusCode.BadRequest);
+                    $"{email} isn't correct email format.",
+                    HttpStatusCode.BadRequest);
         }
 
         [HttpGet]
         [Route("isUsernameAlreadyUsed")]
         [EnableCors]
         [Produces("application/json")]
-        public HttpResponseMessage isUsernameUsed(string username)
+        public HttpResponseMessage IsUsernameUsed(string username)
         {
-            return new IsAleradyUsedResponseMessage() { isAlreadyUsed = !db.IsUserUsernameUnique(username) };
+            // return new IsAleradyUsedResponseMessage() { isAlreadyUsed = !db.IsUserUsernameUnique(username) };
+            using var context = new flashcardsContext();
+                return new IsAleradyUsedResponseMessage() { isAlreadyUsed = context.users.Any(u => u.username == username)};
         }
 
         private PublicUserResponseMessage CreatePublicUserResponseMessage(User.User u)
@@ -132,6 +160,16 @@ namespace flashcards_server.Controllers
             return new PublicUserResponseMessage { user = new PublicUser(u.id, u.username) };
         }
 
-        DatabaseManagement.DatabaseManagement db = flashcards_server.Program.db;
+        static bool IsValidEmail(string email)
+        {
+            try {
+                var addr = new System.Net.Mail.MailAddress(email);
+                return addr.Address == email;
+            }
+            catch {
+                return false;
+            }
+        }
+
     }
 }
