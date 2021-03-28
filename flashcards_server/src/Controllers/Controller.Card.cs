@@ -23,7 +23,9 @@ namespace flashcards_server.Controllers
             {
                 using (var context = new flashcardsContext())
                 {
-                    context.cards.Add(CreateCardFromMinCard(c));
+                    if (!context.sets.Any(s => s.id == c.inSet))
+                        throw new ArgumentException($"There is no set with id {c.inSet}");
+                        context.cards.Add(CreateCardFromMinCard(c));
                     context.SaveChanges();
 
                     return new SuccessMessageResponseMessage(true);
