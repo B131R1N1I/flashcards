@@ -1,9 +1,15 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using Npgsql.EntityFrameworkCore.PostgreSQL;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Design;
+// using Microsoft.AspNetCore.Identity;
 
 namespace flashcards_server
 {
@@ -29,6 +35,12 @@ namespace flashcards_server
                             .AllowAnyMethod();
                 });
             });
+            // services.AddDbContext<flashcardsContext>(options =>
+            //     options.UseNpgsql("Host=localhost;Database=flashcards;Username=flashcards_app;Password=fc_app"));
+            services.AddIdentity<User.User, IdentityRole<long>>()
+                 .AddEntityFrameworkStores<flashcardsContext>()
+                .AddDefaultTokenProviders();
+
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
@@ -53,6 +65,7 @@ namespace flashcards_server
 
             app.UseCors("default");
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

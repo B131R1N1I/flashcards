@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Identity;
 
 
 namespace flashcards_server.User
 {
-    public partial class User
+    public partial class User : IdentityUser<long>
     {
         public User()
         {
