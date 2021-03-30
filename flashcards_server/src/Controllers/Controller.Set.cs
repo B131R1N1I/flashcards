@@ -89,11 +89,11 @@ namespace flashcards_server.Controllers
             {
                 using var context = new flashcardsContext();
                 
-                var u = context.users.First(u => u.id == change.userId); 
+                var u = context.users.First(u => u.Id == change.userId); 
                 // db.GetUserById(change.userId);
                 var s = context.sets.First(s => s.id == change.setId);
                 // db.GetSetById(change.setId);
-                s.ownerId = u.id;
+                s.ownerId = u.Id;
                 // db.TransferOwnership(s, u);
                 return new SuccessMessageResponseMessage(true);
             }

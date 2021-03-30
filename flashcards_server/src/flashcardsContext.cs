@@ -149,19 +149,28 @@ namespace flashcards_server
             {
                 entity.ToTable("users");
 
-                entity.HasIndex(e => e.email, "users_email_key")
+                entity.HasIndex(e => e.Id, "users_id_key")
+                    .IsUnique();
+                    
+                entity.HasIndex(e => e.Email, "users_email_key")
                     .IsUnique();
 
-                entity.HasIndex(e => e.username, "users_username_key")
+                entity.HasIndex(e => e.UserName, "users_username_key")
                     .IsUnique();
 
-                entity.Property(e => e.id).HasColumnName("id");
+                entity.Property(e => e.Id).HasColumnName("id")
+                    .IsRequired()
+                    .HasColumnName("id");
 
                 entity.Property(e => e.active).HasColumnName("active");
 
-                entity.Property(e => e.email)
+                entity.Property(e => e.Email)
                     .IsRequired()
                     .HasColumnName("email");
+
+                entity.Property(e => e.EmailConfirmed)
+                    .IsRequired()
+                    .HasColumnName("email_confirmed");
 
                 entity.Property(e => e.name).HasColumnName("name");
 
@@ -171,7 +180,7 @@ namespace flashcards_server
 
                 entity.Property(e => e.surname).HasColumnName("surname");
 
-                entity.Property(e => e.username)
+                entity.Property(e => e.UserName)
                     .IsRequired()
                     .HasColumnName("username");
             });

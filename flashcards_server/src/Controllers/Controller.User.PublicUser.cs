@@ -13,6 +13,6 @@ namespace flashcards_server.Controllers
             this.username = username;
         }
         
-        public PublicUser(User.User u) : this(u.id, u.username) {}
+        public PublicUser(User.User u) : this(u.Id, u.UserName) {}
     }
 }

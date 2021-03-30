@@ -10,13 +10,14 @@ DROP TABLE IF EXISTS card_status;
 
 
 CREATE TABLE users(
-	id					SERIAL,
+	id				SERIAL UNIQUE,
 	username			TEXT UNIQUE NOT NULL,
 	email				TEXT UNIQUE NOT NULL,
 	name				TEXT,
-	surname				TEXT,
+	surname			TEXT,
 	password			TEXT NOT NULL,
-	active 				BOOLEAN NOT NULL DEFAULT true,
+	email_confirmed		BOOLEAN NOT NULL DEFAULT false,
+	active				BOOLEAN NOT NULL DEFAULT true,
 	
 	PRIMARY KEY(id)
 	-- ADD CONSTRAINT email 
@@ -24,12 +25,12 @@ CREATE TABLE users(
 
 
 CREATE TABLE sets(
-	id 					SERIAL,
+	id 				SERIAL UNIQUE,
 	name 				TEXT UNIQUE NOT NULL,
 	creator_id 			INTEGER NOT NULL,
 	owner_id 			INTEGER NOT NULL,
-	created_date 		TIMESTAMP NOT NULL,
-	last_modification	TIMESTAMP NOT NULL,
+	created_date 			TIMESTAMP NOT NULL,
+	last_modification		TIMESTAMP NOT NULL,
 	is_public			BOOLEAN NOT NULL,
 
 	PRIMARY KEY(id),
@@ -40,7 +41,7 @@ CREATE TABLE sets(
 
 
 CREATE TABLE cards(
-	id 					SERIAL,
+	id 					SERIAL UNIQUE,
 	question			TEXT NOT NULL,
 	answer				TEXT NOT NULL,
 	picture				BYTEA,

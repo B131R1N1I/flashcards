@@ -23,15 +23,15 @@ namespace flashcards_server.Controllers
             try
             {
                 using var context = new flashcardsContext();
-                if (!IsValidEmail(u.email))
+                if (!IsValidEmail(u.Email))
                     throw new FormatException("Email format is not valid.");
-                if (context.users.Any(user => user.username == u.username | user.email == u.email))
-                    if (context.users.Any(user => user.username == u.username))
+                if (context.users.Any(user => user.UserName == u.UserName | user.Email == u.Email))
+                    if (context.users.Any(user => user.UserName == u.UserName))
                         throw new FormatException("Username is already used");
                     else throw new FormatException("Email is already used");
                 context.users.Add(u);
                 context.SaveChanges();
-                System.Console.WriteLine($">> added {u.username}");
+                System.Console.WriteLine($">> added {u.UserName}");
                 return new SuccessMessageResponseMessage(true);
             }
             catch (FormatException e)
@@ -52,7 +52,7 @@ namespace flashcards_server.Controllers
             {
                 using (var context = new flashcardsContext())
                 {
-                    var user = context.users.First(u => u.id == updateRequest.id);
+                    var user = context.users.First(u => u.Id == updateRequest.id);
                 
                 var to = updateRequest.to;
                 var what = updateRequest.what;
@@ -61,7 +61,7 @@ namespace flashcards_server.Controllers
                     case "email":
                         if (IsValidEmail(to))
                             throw new FormatException($"{to} isn't correct email format.");
-                        user.email = to;
+                        user.Email = to;
                         break;
                     case "name":
                         user.name = to;
@@ -110,14 +110,14 @@ namespace flashcards_server.Controllers
             try
             {
                 using var context = new flashcardsContext();
-                return CreatePublicUserResponseMessage(context.users.First(u => u.id == id));
+                return CreatePublicUserResponseMessage(context.users.First(u => u.Id == id));
             }
             catch (Exception)
             {
                 try
                 {
                     using var context = new flashcardsContext();
-                    return CreatePublicUserResponseMessage(context.users.First(u => u.username == username));
+                    return CreatePublicUserResponseMessage(context.users.First(u => u.UserName == username));
                 }
                 catch (Exception)
                 {
@@ -135,7 +135,7 @@ namespace flashcards_server.Controllers
             if (IsValidEmail(email))
             {
                 using var context = new flashcardsContext();
-                return new IsAleradyUsedResponseMessage() { isAlreadyUsed = context.users.Any(u => u.email == email)};
+                return new IsAleradyUsedResponseMessage() { isAlreadyUsed = context.users.Any(u => u.Email == email)};
             }
 
             else
@@ -152,12 +152,12 @@ namespace flashcards_server.Controllers
         {
             // return new IsAleradyUsedResponseMessage() { isAlreadyUsed = !db.IsUserUsernameUnique(username) };
             using var context = new flashcardsContext();
-                return new IsAleradyUsedResponseMessage() { isAlreadyUsed = context.users.Any(u => u.username == username)};
+                return new IsAleradyUsedResponseMessage() { isAlreadyUsed = context.users.Any(u => u.UserName == username)};
         }
 
         private PublicUserResponseMessage CreatePublicUserResponseMessage(User.User u)
         {
-            return new PublicUserResponseMessage { user = new PublicUser(u.id, u.username) };
+            return new PublicUserResponseMessage { user = new PublicUser(u.Id, u.UserName) };
         }
 
         static bool IsValidEmail(string email)

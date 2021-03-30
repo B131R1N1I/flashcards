@@ -35,9 +35,14 @@ namespace flashcards_server
                             .AllowAnyMethod();
                 });
             });
+            // services.AddControllers().AddJsonOptions(option =>
+            // {
+            //     option.JsonSerializerOptions.PropertyNamingPolicy = null;
+            //     option.JsonSerializerOptions.PropertyNameCaseInsensitive = false;
+            // });
             // services.AddDbContext<flashcardsContext>(options =>
             //     options.UseNpgsql("Host=localhost;Database=flashcards;Username=flashcards_app;Password=fc_app"));
-            services.AddIdentity<User.User, IdentityRole<long>>()
+            services.AddIdentity<User.User, IdentityRole<int>>()
                  .AddEntityFrameworkStores<flashcardsContext>()
                 .AddDefaultTokenProviders();
 
