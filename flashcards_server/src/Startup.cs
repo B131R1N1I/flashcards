@@ -1,3 +1,6 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -6,6 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Npgsql.EntityFrameworkCore.PostgreSQL;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Design;
@@ -35,22 +39,36 @@ namespace flashcards_server
                             .AllowAnyMethod();
                 });
             });
-            // services.AddControllers().AddJsonOptions(option =>
-            // {
-            //     option.JsonSerializerOptions.PropertyNamingPolicy = null;
-            //     option.JsonSerializerOptions.PropertyNameCaseInsensitive = false;
-            // });
-            // services.AddDbContext<flashcardsContext>(options =>
-            //     options.UseNpgsql("Host=localhost;Database=flashcards;Username=flashcards_app;Password=fc_app"));
             services.AddIdentity<User.User, IdentityRole<int>>()
                  .AddEntityFrameworkStores<flashcardsContext>()
                 .AddDefaultTokenProviders();
+
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme,
+                    options =>
+                    {
+                        options.TokenValidationParameters = new TokenValidationParameters
+                        {
+                            ValidateIssuer = true,
+                            ValidateAudience = true,
+                            ValidateLifetime = true,
+                            ValidateIssuerSigningKey = true,
+                            ValidIssuer = Configuration["Jwt:Issuer"],
+                            ValidAudience = Configuration["Jwt:Issuer"],
+                            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Jwt:Key"]))
+                        };
+
+                    });
+                // .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme,
+                //     options => Configuration.Bind("CookieSettings", options));
+            
 
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "flashcards_server", Version = "v1" });
             });
+            services.AddMvc();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -71,7 +89,10 @@ namespace flashcards_server
             app.UseCors("default");
 
             app.UseAuthentication();
-            app.UseAuthorization();
+            
+            // app.UseAuthorization();
+            
+            // app.UseMvc();
 
             app.UseEndpoints(endpoints =>
             {

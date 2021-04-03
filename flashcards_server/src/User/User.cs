@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
+using flashcards_server.Controllers;
 using Microsoft.AspNetCore.Identity;
 
 
@@ -63,6 +64,11 @@ namespace flashcards_server.User
         public override int GetHashCode()
         {
             return base.GetHashCode();
+        }
+
+        public static implicit operator PublicUser(User user)
+        {
+            return new PublicUser(user.Id, user.UserName);
         }
         
     }

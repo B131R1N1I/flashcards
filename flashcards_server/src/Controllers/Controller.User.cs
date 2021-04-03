@@ -1,11 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 
 namespace flashcards_server.Controllers
 {
@@ -13,6 +21,14 @@ namespace flashcards_server.Controllers
     [Route("fc/user")]
     public class UserController : ControllerBase
     {
+
+        private readonly IConfiguration _configuration;
+
+        public UserController(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+        
         [HttpPost]
         [Route("register/")]
         [EnableCors]
@@ -41,18 +57,42 @@ namespace flashcards_server.Controllers
             }
         }
 
+        [HttpPost]
+        [Route("login/")]
+        [EnableCors]
+        [Consumes("application/json")]
+        public IActionResult Login(LoginData loginData)
+        {
+            
+            using var context = new flashcardsContext();
+            IActionResult response = Unauthorized();
+            try
+            {
+                var user = context.users.First(u => u.UserName == loginData.login && u.password == loginData.password);
+                var token = GenerateJSONWebToken(user);
+                response = Ok(new {token = token});
+                
+                return response;
+            }
+            catch (InvalidOperationException)
+            {
+                return response;
+            }
+
+        }
+        
         [HttpPut]
         [Route("update/")]
         [EnableCors]
+        [Authorize]
         [Consumes("application/json")]
         [Produces("application/json")]
         public SuccessMessageResponseMessage UpdateUserData(UpdateRequest updateRequest)
         {
             try
             {
-                using (var context = new flashcardsContext())
-                {
-                    var user = context.users.First(u => u.Id == updateRequest.id);
+                using var context = new flashcardsContext();
+                var user = context.users.First(u => u.Id == updateRequest.id);
                 
                 var to = updateRequest.to;
                 var what = updateRequest.what;
@@ -77,7 +117,7 @@ namespace flashcards_server.Controllers
                             $"'{what}' is not valid property",
                             HttpStatusCode.BadRequest);
                 }
-                }
+
                 return new SuccessMessageResponseMessage(true);
             }
             catch (Exception e)
@@ -94,7 +134,7 @@ namespace flashcards_server.Controllers
         [Route("getUsers/")]
         [EnableCors]
         [Produces("application/json")]
-        public List<PublicUser> getPublicUsers()
+        public List<PublicUser> GetPublicUsers()
         {
             using (var context = new flashcardsContext())
                 return context.users.Cast<PublicUser>().ToList();
@@ -159,6 +199,92 @@ namespace flashcards_server.Controllers
         {
             return new PublicUserResponseMessage { user = new PublicUser(u.Id, u.UserName) };
         }
+
+        private string GenerateJSONWebToken(User.User user)
+        {
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+            // var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+            var myIssuer = "https://localhost:5001";
+            var myAudience = "https://localhost:5001";
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new Claim[]
+                {
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                }),
+                Expires = DateTime.Now.AddMinutes(1),
+                Issuer = myIssuer,
+                Audience = myAudience,
+                SigningCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature)
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
+
+
+            // var token = new JwtSecurityToken(_configuration["Jwt:Issuer"], _configuration["Jwt:Issuer"], null, expires: DateTime.Now.AddMinutes(5), signingCredentials: credentials);
+            // Console.WriteLine("================");
+            // Console.WriteLine(token);
+            // Console.WriteLine("================");
+            // return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+        
+        private bool ValidateCurrentToken(string token)
+        {
+            
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+
+            var myIssuer = "https://localhost:5001";
+            var myAudience = "https://localhost:5001";
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            try
+            {
+                tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidIssuer = myIssuer,
+                    ValidAudience = myAudience,
+                    IssuerSigningKey = securityKey
+                }, out SecurityToken validatedToken);
+            }
+            catch
+            {
+                return false;
+            }
+            return true;
+        }
+
+
+        [HttpGet]
+        [Route("valt/")]
+        [EnableCors]
+        public PublicUser valt(string temp)
+        {
+            return new PublicUser(GetClaim(temp, "nameid"));
+        }
+        
+
+        private User.User GetClaim(string token, string claimType)
+        {
+            if (!ValidateCurrentToken(token))
+                throw new NotImplementedException("bad token");
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var securityToken = tokenHandler.ReadToken(token) as JwtSecurityToken;
+
+            
+            using var context = new flashcardsContext();
+            var userId = Int32.Parse(securityToken.Claims.First(claim => claim.Type == claimType).Value);
+            if (securityToken.ValidTo < DateTime.UtcNow)
+                throw new NotImplementedException("expired");
+            return context.users.First(u => u.Id == userId);
+        }
+
 
         static bool IsValidEmail(string email)
         {

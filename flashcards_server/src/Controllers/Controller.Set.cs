@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,6 +15,7 @@ namespace flashcards_server.Controllers
         [HttpPost]
         [Route("create")]
         [EnableCors]
+        [Authorize]
         [Consumes("application/json")]
         [Produces("application/json")]
         public SuccessMessageResponseMessage CreateSet(MinSet minSet)

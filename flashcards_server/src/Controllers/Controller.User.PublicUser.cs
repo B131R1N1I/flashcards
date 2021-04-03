@@ -4,10 +4,10 @@ namespace flashcards_server.Controllers
 {
     public class PublicUser
     {
-        public int id { get; set; }
+        public long id { get; set; }
         public string username { get; set; }
 
-        public PublicUser(int id, string username)
+        public PublicUser(long id, string username)
         {
             this.id = id;
             this.username = username;
