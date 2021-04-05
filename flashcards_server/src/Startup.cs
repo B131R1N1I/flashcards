@@ -4,7 +4,11 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Routing;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,13 +43,13 @@ namespace flashcards_server
                             .AllowAnyMethod();
                 });
             });
+            
             services.AddIdentity<User.User, IdentityRole<int>>()
-                 .AddEntityFrameworkStores<flashcardsContext>()
+                .AddEntityFrameworkStores<flashcardsContext>()
                 .AddDefaultTokenProviders();
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme,
-                    options =>
+                .AddJwtBearer(options =>
                     {
                         options.TokenValidationParameters = new TokenValidationParameters
                         {
@@ -61,14 +65,48 @@ namespace flashcards_server
                     });
                 // .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme,
                 //     options => Configuration.Bind("CookieSettings", options));
-            
 
+            services.AddOptions();
+            
+            
+            
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "flashcards_server", Version = "v1" });
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Description = @"JWT Authorization header using the Bearer scheme. \r\n\r\n 
+                      Enter 'Bearer' [space] and then your token in the text input below.
+                      \r\n\r\nExample: 'Bearer 12345abcdef'",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer"
+                });
+
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            },
+                            Scheme = "oauth2",
+                            Name = "Bearer",
+                            In = ParameterLocation.Header,
+
+                        },
+                        new List<string>()
+                    }
+                });
             });
-            services.AddMvc();
+            services.AddMvcCore()
+                .AddAuthorization();
+            // .AddJsonFormatters(options => options.Con);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -84,15 +122,16 @@ namespace flashcards_server
 
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
+            
             app.UseRouting();
 
             app.UseCors("default");
 
-            app.UseAuthentication();
+            app.UseAuthorization();
             
             // app.UseAuthorization();
             
-            // app.UseMvc();
 
             app.UseEndpoints(endpoints =>
             {
@@ -102,6 +141,8 @@ namespace flashcards_server
                     pattern: "{controller=fc}/");
 
             });
+            // app.UseMvc();
+
         }
     }
 }

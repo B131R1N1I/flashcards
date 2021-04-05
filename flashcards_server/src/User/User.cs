@@ -21,6 +21,7 @@ namespace flashcards_server.User
         public override bool EmailConfirmed { get; set; }
         public string name { get; set; }
         public string surname { get; set; }
+        [JsonIgnore]
         public string password { get; set; }
         public bool active { get; set; }
         [NotMapped] public override string PasswordHash { get; set; }

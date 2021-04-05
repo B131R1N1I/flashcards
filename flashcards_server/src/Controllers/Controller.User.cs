@@ -1,16 +1,15 @@
 using System;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Mail;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -47,7 +46,7 @@ namespace flashcards_server.Controllers
                     else throw new FormatException("Email is already used");
                 context.users.Add(u);
                 context.SaveChanges();
-                System.Console.WriteLine($">> added {u.UserName}");
+                Console.WriteLine($">> added {u.UserName}");
                 return new SuccessMessageResponseMessage(true);
             }
             catch (FormatException e)
@@ -70,7 +69,8 @@ namespace flashcards_server.Controllers
             {
                 var user = context.users.First(u => u.UserName == loginData.login && u.password == loginData.password);
                 var token = GenerateJSONWebToken(user);
-                response = Ok(new {token = token});
+                response = Ok(new {token});
+                Console.WriteLine(user);
                 
                 return response;
             }
@@ -84,11 +84,13 @@ namespace flashcards_server.Controllers
         [HttpPut]
         [Route("update/")]
         [EnableCors]
-        [Authorize]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [Consumes("application/json")]
         [Produces("application/json")]
-        public SuccessMessageResponseMessage UpdateUserData(UpdateRequest updateRequest)
+        public HttpResponseMessage UpdateUserData([FromBody]UpdateRequest updateRequest)
         {
+            if (updateRequest.id != loggedInId())
+                 return new HttpResponseMessage(HttpStatusCode.Unauthorized);
             try
             {
                 using var context = new flashcardsContext();
@@ -105,6 +107,7 @@ namespace flashcards_server.Controllers
                         break;
                     case "name":
                         user.name = to;
+                        Console.WriteLine("Name!!!!!!!!!");
                         break;
                     case "surname":
                         user.surname = to;
@@ -118,12 +121,15 @@ namespace flashcards_server.Controllers
                             HttpStatusCode.BadRequest);
                 }
 
+                Console.WriteLine(user);
+                context.Update(user);
+                context.SaveChanges();
+
                 return new SuccessMessageResponseMessage(true);
             }
-            catch (Exception e)
+            catch (FormatException e)
             {
-                if (e is FormatException || e is Npgsql.NpgsqlException)
-                    return new SuccessMessageResponseMessage(false,
+                return new SuccessMessageResponseMessage(false,
                                                              e.Message,
                                                              HttpStatusCode.BadRequest);
                 throw;
@@ -175,13 +181,12 @@ namespace flashcards_server.Controllers
             if (IsValidEmail(email))
             {
                 using var context = new flashcardsContext();
-                return new IsAleradyUsedResponseMessage() { isAlreadyUsed = context.users.Any(u => u.Email == email)};
+                return new IsAleradyUsedResponseMessage { isAlreadyUsed = context.users.Any(u => u.Email == email)};
             }
 
-            else
-                return new SuccessMessageResponseMessage(false,
-                    $"{email} isn't correct email format.",
-                    HttpStatusCode.BadRequest);
+            return new SuccessMessageResponseMessage(false,
+                $"{email} isn't correct email format.",
+                HttpStatusCode.BadRequest);
         }
 
         [HttpGet]
@@ -192,7 +197,7 @@ namespace flashcards_server.Controllers
         {
             // return new IsAleradyUsedResponseMessage() { isAlreadyUsed = !db.IsUserUsernameUnique(username) };
             using var context = new flashcardsContext();
-                return new IsAleradyUsedResponseMessage() { isAlreadyUsed = context.users.Any(u => u.UserName == username)};
+                return new IsAleradyUsedResponseMessage { isAlreadyUsed = context.users.Any(u => u.UserName == username)};
         }
 
         private PublicUserResponseMessage CreatePublicUserResponseMessage(User.User u)
@@ -211,11 +216,11 @@ namespace flashcards_server.Controllers
             var tokenHandler = new JwtSecurityTokenHandler();
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new Claim[]
+                Subject = new ClaimsIdentity(new[]
                 {
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 }),
-                Expires = DateTime.Now.AddMinutes(1),
+                Expires = DateTime.Now.AddHours(1),
                 Issuer = myIssuer,
                 Audience = myAudience,
                 SigningCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature)
@@ -237,8 +242,8 @@ namespace flashcards_server.Controllers
             
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
 
-            var myIssuer = "https://localhost:5001";
-            var myAudience = "https://localhost:5001";
+            var myIssuer = _configuration["Jwt:Issuer"];
+            var myAudience = _configuration["Jwt:Issuer"];
 
             var tokenHandler = new JwtSecurityTokenHandler();
             try
@@ -261,15 +266,6 @@ namespace flashcards_server.Controllers
         }
 
 
-        [HttpGet]
-        [Route("valt/")]
-        [EnableCors]
-        public PublicUser valt(string temp)
-        {
-            return new PublicUser(GetClaim(temp, "nameid"));
-        }
-        
-
         private User.User GetClaim(string token, string claimType)
         {
             if (!ValidateCurrentToken(token))
@@ -285,11 +281,15 @@ namespace flashcards_server.Controllers
             return context.users.First(u => u.Id == userId);
         }
 
+        private int loggedInId()
+        {
+            return Int32.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+        }
 
         static bool IsValidEmail(string email)
         {
             try {
-                var addr = new System.Net.Mail.MailAddress(email);
+                var addr = new MailAddress(email);
                 return addr.Address == email;
             }
             catch {
