@@ -4,6 +4,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 using flashcards_server.Controllers;
 using Microsoft.AspNetCore.Identity;
+using System.Security.Cryptography;
+using System.Text;
 
 
 namespace flashcards_server.User
@@ -21,23 +23,22 @@ namespace flashcards_server.User
         public override bool EmailConfirmed { get; set; }
         public string name { get; set; }
         public string surname { get; set; }
-        [JsonIgnore]
         public string password { get; set; }
         public bool active { get; set; }
-        [NotMapped] public override string PasswordHash { get; set; }
+        [NotMapped] [JsonIgnore] public override string PasswordHash { get; set; }
 
-        [NotMapped] public override int AccessFailedCount { get; set; }
-        [NotMapped] public override string NormalizedUserName { get; set; }
-        [NotMapped] public override string NormalizedEmail { get; set; }
-        [NotMapped] public override string SecurityStamp { get; set; }
-        [NotMapped] public override string ConcurrencyStamp { get; set; }
-        [NotMapped] public override string PhoneNumber { get; set; }
-        [NotMapped] public override bool PhoneNumberConfirmed { get; set; }
-        [NotMapped] public override bool TwoFactorEnabled { get; set; }
-        [NotMapped] public override bool LockoutEnabled { get; set; }
-        [NotMapped] public override DateTimeOffset? LockoutEnd { get; set; }
+        [NotMapped] [JsonIgnore] public override int AccessFailedCount { get; set; }
+        [NotMapped] [JsonIgnore] public override string NormalizedUserName { get; set; }
+        [NotMapped] [JsonIgnore] public override string NormalizedEmail { get; set; }
+        [NotMapped] [JsonIgnore] public override string SecurityStamp { get; set; }
+        [NotMapped] [JsonIgnore] public override string ConcurrencyStamp { get; set; }
+        [NotMapped] [JsonIgnore] public override string PhoneNumber { get; set; }
+        [NotMapped] [JsonIgnore] public override bool PhoneNumberConfirmed { get; set; }
+        [NotMapped] [JsonIgnore] public override bool TwoFactorEnabled { get; set; }
+        [NotMapped] [JsonIgnore] public override bool LockoutEnabled { get; set; }
+        [NotMapped] [JsonIgnore] public override DateTimeOffset? LockoutEnd { get; set; }
         
-
+        [JsonIgnore]
         public virtual ICollection<Set.Set> sets { get; set; }
         
         
@@ -51,6 +52,7 @@ namespace flashcards_server.User
             this.surname = surname;
             this.password = password;
         }
+        
         
         public override string ToString()
         {
