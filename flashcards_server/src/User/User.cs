@@ -23,7 +23,7 @@ namespace flashcards_server.User
         public override bool EmailConfirmed { get; set; }
         public string name { get; set; }
         public string surname { get; set; }
-        public string password { get; set; }
+        public byte[] password { get; private set; }
         public bool active { get; set; }
         [NotMapped] [JsonIgnore] public override string PasswordHash { get; set; }
 
@@ -43,20 +43,38 @@ namespace flashcards_server.User
         
         
         [JsonConstructor]
-        public User(string username, string email, string name, string surname, string password, int id)
+        public User(string username, string email, string name, string surname)
         {
-            this.Id = id;
             this.UserName = username;
             this.Email = email;
             this.name = name;
             this.surname = surname;
-            this.password = password;
         }
         
         
         public override string ToString()
         {
             return $"User [{Id}: ({UserName}, {Email}, {name}, {surname})]";
+        }
+
+        public bool ValidatePassword(string password)
+        {
+            Console.WriteLine(Encoding.ASCII.GetString(this.password));
+            Console.WriteLine(Encoding.ASCII.GetString(Sha512EncryptPassword(password)));
+            return Encoding.ASCII.GetString(this.password) ==  Encoding.ASCII.GetString(Sha512EncryptPassword(password));
+        }
+
+        public void ChangePassword(string password)
+        {
+            this.password = Sha512EncryptPassword(password);
+        }
+
+        public static byte[] Sha512EncryptPassword(string password)
+        {
+            // Console.WriteLine(PasswordHash);
+            using var shaM = SHA512.Create();
+            return shaM.ComputeHash(
+                    Encoding.UTF8.GetBytes(password));
         }
 
         public override bool Equals(object obj)

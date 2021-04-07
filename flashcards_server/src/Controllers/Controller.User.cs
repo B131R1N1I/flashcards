@@ -35,17 +35,19 @@ namespace flashcards_server.Controllers
         [AllowAnonymous]
         [Consumes("application/json")]
         [Produces("application/json")]
-        public IActionResult Register(User.User u)
+        public IActionResult Register(UserToRegister user)
         {
             try
             {
+                var u = new User.User(user.username, user.email, user.name, user.surname);
                 using var context = new flashcardsContext();
                 if (!IsValidEmail(u.Email))
                     throw new FormatException("Email format is not valid.");
-                if (context.users.Any(user => user.UserName == u.UserName | user.Email == u.Email))
-                    if (context.users.Any(user => user.UserName == u.UserName))
+                if (context.users.Any(us => us.UserName == u.UserName | us.Email == u.Email))
+                    if (context.users.Any(us => us.UserName == u.UserName))
                         throw new FormatException("Username is already used");
                     else throw new FormatException("Email is already used");
+                u.ChangePassword(user.password);
                 context.users.Add(u);
                 context.SaveChanges();
                 Console.WriteLine($">> added {u.UserName}");
@@ -59,20 +61,23 @@ namespace flashcards_server.Controllers
 
         [HttpPost]
         [Route("login/")]
+        [AllowAnonymous]
         [EnableCors]
         [Consumes("application/json")]
         public IActionResult Login(LoginData loginData)
         {
-            
+            Console.WriteLine("login");
             using var context = new flashcardsContext();
             IActionResult response = Unauthorized();
             try
             {
-                var user = context.users.First(u => u.UserName == loginData.login && u.password == loginData.password);
+                Console.WriteLine(Encoding.ASCII.GetString(flashcards_server.User.User.Sha512EncryptPassword(loginData.password)));
+                var user = context.users.First(u => u.UserName == loginData.login);
+                if (!user.ValidatePassword(loginData.password))
+                    return response;
                 var token = GenerateJsonWebToken(user);
                 response = Ok(new {token});
                 Console.WriteLine(user);
-                
                 return response;
             }
             catch (InvalidOperationException)
@@ -90,7 +95,7 @@ namespace flashcards_server.Controllers
         public IActionResult UpdateUserData([FromBody]UpdateRequest updateRequest)
         {
             if (updateRequest.id != LoggedInId())
-                return Unauthorized();
+                return Unauthorized("Access denied");
             
             using var context = new flashcardsContext();
             var user = context.users.First(u => u.Id == updateRequest.id);
@@ -112,7 +117,7 @@ namespace flashcards_server.Controllers
                     user.surname = to;
                     break;
                 case "password":
-                    user.password = to;
+                    user.ChangePassword(to);
                     break;
                 default:
                     return BadRequest($"'{what}' is not valid property");
@@ -142,7 +147,6 @@ namespace flashcards_server.Controllers
         [Produces("application/json")]
         public PublicUser GetUserPublic(uint id, string username)
         {
-
             try
             {
                 using var context = new flashcardsContext();
@@ -182,7 +186,6 @@ namespace flashcards_server.Controllers
         [Produces("application/json")]
         public IActionResult IsUsernameUsed(string username)
         {
-            // return new IsAleradyUsedResponseMessage() { isAlreadyUsed = !db.IsUserUsernameUnique(username) };
             using var context = new flashcardsContext();
                 return Ok(context.users.Any(u => u.UserName == username));
         }

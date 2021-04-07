@@ -15,7 +15,7 @@ CREATE TABLE users(
 	email				TEXT UNIQUE NOT NULL,
 	name				TEXT,
 	surname			TEXT,
-	password			TEXT NOT NULL,
+	password			BYTEA NOT NULL,
 	email_confirmed		BOOLEAN NOT NULL DEFAULT false,
 	active				BOOLEAN NOT NULL DEFAULT true,
 	
