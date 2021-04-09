@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -32,7 +31,6 @@ namespace flashcards_server.Controllers
                     context.SaveChanges();
                 }
 
-                System.Console.WriteLine($">>> ADDED SET {setToCreate.name}");
                 return Ok();
             }
             catch (Exception e)
@@ -65,23 +63,21 @@ namespace flashcards_server.Controllers
         [Route("getSetsForMe")]
         [EnableCors]
         [Produces("application/json")]
-        public List<Set.Set> GetSetsAvailableForUser()
+        public IEnumerable<Set.Set> GetSetsAvailableForUser()
         {
             var id = LoggedInId();
             using var context = new flashcardsContext();
-            return context.sets.Where(s => s.ownerId == id || s.creatorId == id).ToList();
+            return context.sets.Where(s => s.ownerId == id || s.creatorId == id);
         }
 
         [HttpGet]
         [Route("getPublicSetsByNameLike")]
         [EnableCors]
         [Produces("application/json")]
-        public List<Set.Set> GetPublicSetsByNameLike(string name)
+        public IEnumerable<Set.Set> GetPublicSetsByNameLike(string name)
         {
-            using (var context = new flashcardsContext())
-            {
-                return context.sets.Where(s => s.name.Contains(name)).ToList();
-            }
+            using var context = new flashcardsContext();
+            return context.sets.Where(s => s.name.Contains(name));
         }
 
         [HttpPut]
@@ -117,11 +113,12 @@ namespace flashcards_server.Controllers
             return int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? 
                              throw new InvalidOperationException(
                                  $"Cannot validate - there's no user with id {ClaimTypes.NameIdentifier}"));
-        }
-        private Set.Set CreateSetFromMinSet(MinSet minSet)
-        {
-            return new Set.Set(minSet.name, minSet.creator, minSet.owner, minSet.isPublic);
-        }
+        } 
+        
+        // private Set.Set CreateSetFromMinSet(MinSet minSet)
+        // {
+        //     return new Set.Set(minSet.name, minSet.creator, minSet.owner, minSet.isPublic);
+        // }
 
     }
 }

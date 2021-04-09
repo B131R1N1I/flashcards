@@ -28,7 +28,7 @@ namespace flashcards_server.Controllers
         {
             _configuration = configuration;
         }
-        
+
         [HttpPost]
         [Route("register/")]
         [EnableCors]
@@ -50,7 +50,6 @@ namespace flashcards_server.Controllers
                 u.ChangePassword(user.password);
                 context.users.Add(u);
                 context.SaveChanges();
-                Console.WriteLine($">> added {u.UserName}");
                 return Ok(u);
             }
             catch (FormatException e)
@@ -66,18 +65,15 @@ namespace flashcards_server.Controllers
         [Consumes("application/json")]
         public IActionResult Login(LoginData loginData)
         {
-            Console.WriteLine("login");
             using var context = new flashcardsContext();
             IActionResult response = Unauthorized();
             try
             {
-                Console.WriteLine(Encoding.ASCII.GetString(flashcards_server.User.User.Sha512EncryptPassword(loginData.password)));
                 var user = context.users.First(u => u.UserName == loginData.login);
                 if (!user.ValidatePassword(loginData.password))
                     return response;
                 var token = GenerateJsonWebToken(user);
-                response = Ok(new {token});
-                Console.WriteLine(user);
+                response = Ok(new { token });
                 return response;
             }
             catch (InvalidOperationException)
@@ -86,20 +82,20 @@ namespace flashcards_server.Controllers
             }
 
         }
-        
+
         [HttpPut]
         [Route("update/")]
         [EnableCors]
         [Consumes("application/json")]
         [Produces("application/json")]
-        public IActionResult UpdateUserData([FromBody]UpdateRequest updateRequest)
+        public IActionResult UpdateUserData(UpdateRequest updateRequest)
         {
             if (updateRequest.id != LoggedInId())
                 return Unauthorized("Access denied");
-            
+
             using var context = new flashcardsContext();
             var user = context.users.First(u => u.Id == updateRequest.id);
-                
+
             var to = updateRequest.to;
             var what = updateRequest.what;
             switch (what.ToLower())
@@ -111,7 +107,6 @@ namespace flashcards_server.Controllers
                     break;
                 case "name":
                     user.name = to;
-                    Console.WriteLine("Name!!!!!!!!!");
                     break;
                 case "surname":
                     user.surname = to;
@@ -123,22 +118,31 @@ namespace flashcards_server.Controllers
                     return BadRequest($"'{what}' is not valid property");
             }
 
-            Console.WriteLine(user);
             context.Update(user);
             context.SaveChanges();
 
             return Ok("Successfully changed");
-            
+
         }
 
         [HttpGet]
         [Route("getUsers/")]
         [EnableCors]
         [Produces("application/json")]
-        public List<PublicUser> GetPublicUsers()
+        public IEnumerable<PublicUser> GetPublicUsers()
         {
             using var context = new flashcardsContext();
             return context.users.Cast<PublicUser>().ToList();
+        }
+
+        [HttpGet]
+        [Route("getMe/")]
+        [EnableCors]
+        [Produces("application/json")]
+        public User.User GetMe()
+        {
+            using var context = new flashcardsContext();
+            return context.users.First(u => u.Id == LoggedInId());
         }
 
         [HttpGet]
@@ -187,7 +191,7 @@ namespace flashcards_server.Controllers
         public IActionResult IsUsernameUsed(string username)
         {
             using var context = new flashcardsContext();
-                return Ok(context.users.Any(u => u.UserName == username));
+            return Ok(context.users.Any(u => u.UserName == username));
         }
 
         private PublicUserResponseMessage CreatePublicUserResponseMessage(User.User u)
@@ -219,10 +223,10 @@ namespace flashcards_server.Controllers
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
-        
+
         private bool ValidateCurrentToken(string token)
         {
-            
+
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
 
             var myIssuer = _configuration["Jwt:Issuer"];
@@ -239,7 +243,7 @@ namespace flashcards_server.Controllers
                     ValidIssuer = myIssuer,
                     ValidAudience = myAudience,
                     IssuerSigningKey = securityKey
-                }, out SecurityToken validatedToken);
+                }, out var validatedToken);
             }
             catch
             {
@@ -256,28 +260,32 @@ namespace flashcards_server.Controllers
             var tokenHandler = new JwtSecurityTokenHandler();
             var securityToken = tokenHandler.ReadToken(token) as JwtSecurityToken;
 
-            
+
             using var context = new flashcardsContext();
+            if (securityToken == null) throw new NotImplementedException("token is null");
             var userId = int.Parse(securityToken.Claims.First(claim => claim.Type == claimType).Value);
             if (securityToken.ValidTo < DateTime.UtcNow)
                 throw new NotImplementedException("expired");
             return context.users.First(u => u.Id == userId);
+
         }
 
         private int LoggedInId()
         {
-            return int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? 
+            return int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
                              throw new InvalidOperationException(
                                  $"Cannot validate - there's no user with id {ClaimTypes.NameIdentifier}"));
         }
 
-        static bool IsValidEmail(string email)
+        private static bool IsValidEmail(string email)
         {
-            try {
+            try
+            {
                 var addr = new MailAddress(email);
                 return addr.Address == email;
             }
-            catch {
+            catch
+            {
                 return false;
             }
         }

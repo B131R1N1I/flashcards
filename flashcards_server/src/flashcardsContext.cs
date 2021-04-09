@@ -62,6 +62,9 @@ namespace flashcards_server
             modelBuilder.Entity<Card.Card>(entity =>
             {
                 entity.ToTable("cards");
+                
+                entity.HasIndex(e => e.id, "cards_id_key")
+                    .IsUnique();
 
                 entity.Property(e => e.id).HasColumnName("id");
 
@@ -72,6 +75,14 @@ namespace flashcards_server
                 entity.Property(e => e.inSet).HasColumnName("in_set");
 
                 entity.Property(e => e.picture).HasColumnName("picture");
+
+                entity.Property(e => e.isPublic)
+                    .IsRequired()
+                    .HasColumnName("is_public");
+
+                entity.Property(e => e.ownerId)
+                    .IsRequired()
+                    .HasColumnName("owner_id");
 
                 entity.Property(e => e.question)
                     .IsRequired()
@@ -120,6 +131,9 @@ namespace flashcards_server
                 entity.ToTable("sets");
 
                 entity.HasIndex(e => e.name, "sets_name_key")
+                    .IsUnique();
+                
+                entity.HasIndex(e => e.id, "sets_id_key")
                     .IsUnique();
 
                 entity.Property(e => e.id).HasColumnName("id");

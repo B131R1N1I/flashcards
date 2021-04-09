@@ -1,14 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
 namespace flashcards_server.Controllers
 {
     [ApiController]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("fc/card")]
     public class CardController : ControllerBase
     {
@@ -17,23 +20,24 @@ namespace flashcards_server.Controllers
         [EnableCors]
         [Consumes("application/json")]
         [Produces("application/json")]
-        public HttpResponseMessage CreateCard(MinCard c)
+        public IActionResult CreateCard(MinCard c)
         {
+            var id = LoggedInId();
             try
             {
-                using (var context = new flashcardsContext())
-                {
-                    if (!context.sets.Any(s => s.id == c.inSet))
-                        throw new ArgumentException($"There is no set with id {c.inSet}");
-                    context.cards.Add(CreateCardFromMinCard(c));
-                    context.SaveChanges();
+                using var context = new flashcardsContext();
+                if (!context.sets.Any(s => s.id == c.inSet))
+                    return BadRequest($"There is no set with id {c.inSet}");
+                if (!context.sets.Any(s => s.id == c.inSet && (s.creatorId == id || s.ownerId == id)))
+                    return BadRequest("Access denied");
+                context.cards.Add(CreateCardFromMinCard(c, LoggedInId()));
+                context.SaveChanges();
 
-                    return new SuccessMessageResponseMessage(true);
-                }
+                return Ok();
             }
             catch (Exception e)
             {
-                return new SuccessMessageResponseMessage(false, e.Message, HttpStatusCode.BadRequest);
+                return BadRequest(e.Message);
             }
         }
 
@@ -42,43 +46,43 @@ namespace flashcards_server.Controllers
         [EnableCors]
         [Consumes("application/json")]
         [Produces("application/json")]
-        public HttpResponseMessage UpdateCard(UpdateRequest updateRequest)
+        public IActionResult UpdateCard(UpdateRequest updateRequest)
         {
             try
             {
-                System.Console.WriteLine(updateRequest.id);
-                using (var context = new flashcardsContext())
+                Console.WriteLine(updateRequest.id);
+
+                using var context = new flashcardsContext();
+
+                var card = context.cards.First(c => c.id == updateRequest.id);
+
+                //db.GetCardById(updateRequest.id);
+                Console.WriteLine("check after card");
+                var what = updateRequest.what;
+                var to = updateRequest.to;
+                Console.WriteLine(card);
+                Console.WriteLine(what);
+                Console.WriteLine(to);
+                switch (what.ToLower())
                 {
-                    var card = context.cards.First(c => c.id == updateRequest.id);
-
-                    //db.GetCardById(updateRequest.id);
-                    System.Console.WriteLine("check after card");
-                    var what = updateRequest.what;
-                    var to = updateRequest.to;
-                    System.Console.WriteLine(card);
-                    System.Console.WriteLine(what);
-                    System.Console.WriteLine(to);
-                    switch (what.ToLower())
-                    {
-                        case "question":
-                            card.question = to;
-                            break;
-                        case "answer":
-                            card.answer = to;
-                            break;
-                        case "image":
-                            card.picture = updateRequest.image;
-                            break;
-                        default:
-                            return new SuccessMessageResponseMessage(false, $"{what} isn't a proper value");
-                    }
-
-                    return new SuccessMessageResponseMessage(true);
+                    case "question":
+                        card.question = to;
+                        break;
+                    case "answer":
+                        card.answer = to;
+                        break;
+                    case "image":
+                        card.picture = updateRequest.image;
+                        break;
+                    default:
+                        return BadRequest($"{what} isn't a proper value");
                 }
+
+                return Ok();
             }
             catch (Exception e)
             {
-                return new SuccessMessageResponseMessage(false, e.Message, HttpStatusCode.BadRequest);
+                return BadRequest(e.Message);
             }
         }
 
@@ -86,23 +90,19 @@ namespace flashcards_server.Controllers
         [Route("getCardById")]
         [EnableCors]
         [Produces("application/json")]
-        public HttpResponseMessage GetCardById(uint id)
+        public PublicCard GetCardById(uint id)
         {
             try
             {
-                using (var context = new flashcardsContext())
-                {
-                    var tempCard = context.cards.First(c => c.id == id);
+                using var context = new flashcardsContext();
+                var tempCard = context.cards.First(c => c.id == id);
 
-                    //db.GetCardById(id);
-                    var card = CreatePublicCardFromCard(tempCard);
-                    return new PublicCardMessage() {card = card};
-                }
+                return CreatePublicCardFromCard(tempCard);
             }
-            catch (ArgumentNullException e)
+            catch (ArgumentNullException)
             {
-                
-                return new SuccessMessageResponseMessage(false, e.Message, HttpStatusCode.NoContent);
+
+                return null;
             }
         }
 
@@ -111,16 +111,13 @@ namespace flashcards_server.Controllers
         [EnableCors]
         [Consumes("application/json")]
         [Produces("application/json")]
-        public List<PublicCard> GetCardsBySetId(uint id)
+        public IEnumerable<PublicCard> GetCardsBySetId(uint id)
         {
             try
             {
-                using (var context = new flashcardsContext())
-                {
-                    var temp_card = context.cards.Where(c => c.inSet == id).ToList();
-                    var cards = CreatePublicCardFromCard(temp_card);
-                    return cards;
-                }
+                using var context = new flashcardsContext();
+                var tempCard = context.cards.Where(c => c.inSet == id).ToArray();
+                return CreatePublicCardFromCard(tempCard);
             }
             catch (Exception)
             {
@@ -133,27 +130,30 @@ namespace flashcards_server.Controllers
         [EnableCors]
         public IActionResult GetImageById(uint id)
         {
-            using (var context = new flashcardsContext())
-            {
-                var converter = new System.Drawing.ImageConverter();
-                return File((byte[]) converter.ConvertTo(context.cards.First(c => c.id == id).picture, typeof(byte[])), "image/gif");
-            }
+            using var context = new flashcardsContext();
+            var converter = new ImageConverter();
+            return File((byte[])converter.ConvertTo(context.cards.First(c => c.id == id).picture, typeof(byte[])), "image/gif");
         }
 
-        Card.Card CreateCardFromMinCard(MinCard minCard)
+        private int LoggedInId()
         {
-            return new Card.Card(minCard.answer, minCard.question, minCard.image, minCard.inSet);
+            return int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
+                             throw new InvalidOperationException(
+                                 $"Cannot validate - there's no user with id {ClaimTypes.NameIdentifier}"));
         }
 
-        List<PublicCard> CreatePublicCardFromCard(List<Card.Card> listOfCards)
+        private static Card.Card CreateCardFromMinCard(MinCard minCard, int ownerId)
         {
-            var l = new List<PublicCard>();
-            foreach (var i in listOfCards)
-                l.Add(CreatePublicCardFromCard(i));
-            return l;
+            return new Card.Card(minCard.answer, minCard.question, minCard.image, minCard.inSet, ownerId, minCard.isPublic);
         }
 
-        PublicCard CreatePublicCardFromCard(Card.Card card)
+        private static IEnumerable<PublicCard> CreatePublicCardFromCard(IEnumerable<Card.Card> listOfCards)
+        {
+            Console.WriteLine("aa");
+            return listOfCards.Select(CreatePublicCardFromCard);
+        }
+
+        private static PublicCard CreatePublicCardFromCard(Card.Card card)
         {
             var href = (card.picture is not null ? $"getImageById?id={card.id}" : null);
             return new PublicCard(card.id, card.question, card.answer, href, card.inSet);
