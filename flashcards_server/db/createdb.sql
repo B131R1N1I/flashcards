@@ -17,7 +17,6 @@ CREATE TABLE users(
 	surname				TEXT,
 	password			BYTEA NOT NULL,
 	email_confirmed		BOOLEAN NOT NULL DEFAULT false,
-	active				BOOLEAN NOT NULL DEFAULT true,
 	
 	PRIMARY KEY(id)
 	-- ADD CONSTRAINT email 
@@ -25,12 +24,12 @@ CREATE TABLE users(
 
 
 CREATE TABLE sets(
-	id 				SERIAL UNIQUE,
+	id 					SERIAL UNIQUE,
 	name 				TEXT UNIQUE NOT NULL,
 	creator_id 			INTEGER NOT NULL,
 	owner_id 			INTEGER NOT NULL,
-	created_date 			TIMESTAMP NOT NULL,
-	last_modification		TIMESTAMP NOT NULL,
+	created_date 		TIMESTAMP NOT NULL,
+	last_modification	TIMESTAMP NOT NULL,
 	is_public			BOOLEAN NOT NULL,
 
 	PRIMARY KEY(id),
@@ -41,7 +40,7 @@ CREATE TABLE sets(
 
 
 CREATE TABLE cards(
-	id 				SERIAL UNIQUE,
+	id 					SERIAL UNIQUE,
 	question			TEXT NOT NULL,
 	answer				TEXT NOT NULL,
 	picture				TEXT,
@@ -60,7 +59,7 @@ CREATE TABLE cards(
 
 
 CREATE TABLE active_sets(
-	user_id			INTEGER NOT NULL,
+	user_id				INTEGER NOT NULL,
 	set_id				INTEGER NOT NULL,
 
 	CONSTRAINT id_user
@@ -73,8 +72,8 @@ CREATE TABLE active_sets(
 
 
 CREATE TABLE card_status(
-	card_id			INTEGER NOT NULL,
-	user_id			INTEGER NOT NULL,
+	card_id				INTEGER NOT NULL,
+	user_id				INTEGER NOT NULL,
 	last_review			TIMESTAMP NOT NULL,
 	next_review			TIMESTAMP NOT NULL,
 	active				BOOL NOT NULL,

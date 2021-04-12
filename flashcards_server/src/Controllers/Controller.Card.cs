@@ -27,7 +27,7 @@ namespace flashcards_server.Controllers
         private readonly string rootPath = Startup.rootPath;
         private readonly string imagePath;
 
-        private readonly string[] imageExtensions = {".gif", ".jpg", "jpeg", ".png"};
+        private readonly string[] imageExtensions = { ".gif", ".jpg", "jpeg", ".png" };
 
         public CardController(IConfiguration configuration)
         {
@@ -37,9 +37,9 @@ namespace flashcards_server.Controllers
         [HttpPost]
         [Route("create")]
         [EnableCors]
-        [Consumes("application/json")]
-        [Produces("application/json")]
-        public IActionResult CreateCard(MinCard c)
+        // [Consumes("application/json")]
+        // [Produces("application/json")]
+        public IActionResult CreateCard([FromForm] MinCard c)
         {
             var id = LoggedInId();
             try
@@ -52,7 +52,11 @@ namespace flashcards_server.Controllers
                 var card = CreateCardFromMinCard(c, LoggedInId());
                 context.cards.Add(card);
 
-                SaveImage(c.image, card.id);
+                // SaveImage(c.image, card.id);
+                context.SaveChanges();
+
+                card.picture = SaveImage(c.image, card.id);
+                context.cards.Update(card);
                 context.SaveChanges();
 
                 return Ok();
@@ -215,7 +219,7 @@ namespace flashcards_server.Controllers
         {
             using var context = new flashcardsContext();
             var imageFileName = (from c in context.cards
-                                 where c.id == LoggedInId() || c.isPublic
+                                 where c.id == id && (c.ownerId == LoggedInId() || c.isPublic)
                                  select c.picture).FirstOrDefault();
             if (imageFileName is null)
                 return NotFound();
@@ -259,16 +263,19 @@ namespace flashcards_server.Controllers
             return new Card.Card(minCard.answer, minCard.question, minCard.inSet, ownerId, minCard.isPublic);
         }
 
-        private static IEnumerable<PublicCard> CreatePublicCardFromCard(IEnumerable<Card.Card> listOfCards)
+        private IEnumerable<PublicCard> CreatePublicCardFromCard(IEnumerable<Card.Card> listOfCards)
         {
             Console.WriteLine("aa");
             return listOfCards.Select(CreatePublicCardFromCard);
         }
 
-        private static PublicCard CreatePublicCardFromCard(Card.Card card)
+        private PublicCard CreatePublicCardFromCard(Card.Card card)
         {
-            var href = (card.picture is not null ? $"getImageById?id={card.id}" : null);
-            return new PublicCard(card.id, card.question, card.answer, href, card.inSet);
+            // var href = (card.picture is not null ? $"getImageById?id={card.id}" : null);
+            return new PublicCard(
+                card.id, card.question, card.answer,
+                card.picture is not null,
+                card.inSet);
         }
     }
 }

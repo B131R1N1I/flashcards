@@ -25,7 +25,7 @@ namespace flashcards_server.User
         public string surname { get; set; }
         [JsonIgnore]
         public byte[] password { get; private set; }
-        public bool active { get; set; }
+        
         [NotMapped] [JsonIgnore] public override string PasswordHash { get; set; }
 
         [NotMapped] [JsonIgnore] public override int AccessFailedCount { get; set; }

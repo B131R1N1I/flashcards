@@ -176,8 +176,6 @@ namespace flashcards_server
                     .IsRequired()
                     .HasColumnName("id");
 
-                entity.Property(e => e.active).HasColumnName("active");
-
                 entity.Property(e => e.Email)
                     .IsRequired()
                     .HasColumnName("email");
