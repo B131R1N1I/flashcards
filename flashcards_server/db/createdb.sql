@@ -10,11 +10,11 @@ DROP TABLE IF EXISTS card_status;
 
 
 CREATE TABLE users(
-	id				SERIAL UNIQUE,
+	id					SERIAL UNIQUE,
 	username			TEXT UNIQUE NOT NULL,
 	email				TEXT UNIQUE NOT NULL,
 	name				TEXT,
-	surname			TEXT,
+	surname				TEXT,
 	password			BYTEA NOT NULL,
 	email_confirmed		BOOLEAN NOT NULL DEFAULT false,
 	active				BOOLEAN NOT NULL DEFAULT true,
@@ -44,7 +44,7 @@ CREATE TABLE cards(
 	id 				SERIAL UNIQUE,
 	question			TEXT NOT NULL,
 	answer				TEXT NOT NULL,
-	picture			BYTEA,
+	picture				TEXT,
 	in_set				INTEGER NOT NULL,
 	owner_id			INTEGER NOT NULL,
 	is_public			BOOLEAN NOT NULL,

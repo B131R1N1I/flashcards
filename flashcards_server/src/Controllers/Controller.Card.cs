@@ -2,11 +2,19 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Web;
+using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
+
+using System.IO;
 
 namespace flashcards_server.Controllers
 {
@@ -15,6 +23,17 @@ namespace flashcards_server.Controllers
     [Route("fc/card")]
     public class CardController : ControllerBase
     {
+
+        private readonly string rootPath = Startup.rootPath;
+        private readonly string imagePath;
+
+        private readonly string[] imageExtensions = {".gif", ".jpg", "jpeg", ".png"};
+
+        public CardController(IConfiguration configuration)
+        {
+            imagePath = rootPath + "/../data/images/cards/";
+        }
+
         [HttpPost]
         [Route("create")]
         [EnableCors]
@@ -30,7 +49,10 @@ namespace flashcards_server.Controllers
                     return BadRequest($"There is no set with id {c.inSet}");
                 if (!context.sets.Any(s => s.id == c.inSet && (s.creatorId == id || s.ownerId == id)))
                     return BadRequest("Access denied");
-                context.cards.Add(CreateCardFromMinCard(c, LoggedInId()));
+                var card = CreateCardFromMinCard(c, LoggedInId());
+                context.cards.Add(card);
+
+                SaveImage(c.image, card.id);
                 context.SaveChanges();
 
                 return Ok();
@@ -54,15 +76,12 @@ namespace flashcards_server.Controllers
 
                 using var context = new flashcardsContext();
 
-                var card = context.cards.First(c => c.id == updateRequest.id);
+                var card = context.cards.First(c => c.id == updateRequest.id && c.ownerId == LoggedInId());
 
                 //db.GetCardById(updateRequest.id);
                 Console.WriteLine("check after card");
                 var what = updateRequest.what;
                 var to = updateRequest.to;
-                Console.WriteLine(card);
-                Console.WriteLine(what);
-                Console.WriteLine(to);
                 switch (what.ToLower())
                 {
                     case "question":
@@ -72,19 +91,35 @@ namespace flashcards_server.Controllers
                         card.answer = to;
                         break;
                     case "image":
-                        card.picture = updateRequest.image;
+                        // card.picture = updateRequest.image;
                         break;
                     default:
                         return BadRequest($"{what} isn't a proper value");
                 }
+                context.Update(card);
+                context.SaveChanges();
 
                 return Ok();
             }
+            catch (InvalidOperationException)
+            {
+                return Unauthorized("Access denied");
+            }
             catch (Exception e)
             {
-                return BadRequest(e.Message);
+                return BadRequest(e);
             }
         }
+
+        // [HttpPut]
+        // [Route("updateImage")]
+        // [EnableCors]
+        // [Consumes("image/png")]
+        // [Produces("application/json")]
+        // public IActionResult updateImage()
+        // {
+
+        // }
 
         [HttpGet]
         [Route("getCardById")]
@@ -95,13 +130,21 @@ namespace flashcards_server.Controllers
             try
             {
                 using var context = new flashcardsContext();
-                var tempCard = context.cards.First(c => c.id == id);
-
+                // var tempCard = context.cards.First(c => c.id == id && (c.ownerId == LoggedInId() || c.isPublic)); // A
+                var tempCard =
+                    (
+                        from c in context.cards
+                        where c.id == id && (c.ownerId == LoggedInId() || c.isPublic)
+                        select c
+                    ).First();
                 return CreatePublicCardFromCard(tempCard);
             }
             catch (ArgumentNullException)
             {
-
+                return null;
+            }
+            catch (InvalidOperationException)
+            {
                 return null;
             }
         }
@@ -116,7 +159,9 @@ namespace flashcards_server.Controllers
             try
             {
                 using var context = new flashcardsContext();
-                var tempCard = context.cards.Where(c => c.inSet == id).ToArray();
+                if (!context.sets.Any(s => s.id == id && (s.ownerId == LoggedInId() || s.isPublic)))
+                    return null;
+                var tempCard = context.cards.Where(c => c.inSet == id && (c.ownerId == LoggedInId() || c.isPublic)).ToArray();
                 return CreatePublicCardFromCard(tempCard);
             }
             catch (Exception)
@@ -125,14 +170,81 @@ namespace flashcards_server.Controllers
             }
         }
 
+        [HttpPost]
+        [Route("updateImage")]
+        [EnableCors]
+        public IActionResult UploadImage([FromForm] UploadImageViewModel model)
+        {
+            var cardId = model.cardId;
+            var file = model.file;
+
+            if (!imageExtensions.Any(x => file.FileName.EndsWith(x)))
+                return UnprocessableEntity();
+
+            using var context = new flashcardsContext();
+
+            // returns card if exists and is public or the user is owner
+            // if doesn't exist returns null
+            var card = (from c in context.cards
+                        where c.id == model.cardId
+                              && (c.ownerId == LoggedInId() || c.isPublic)
+                        select c).SingleOrDefault();
+
+            // 404 if card not found
+            if (card is null)
+                return NotFound();
+
+            // user cannot edit card if is not owner
+            if (card.ownerId != LoggedInId())
+                return Forbid();
+
+            var name = SaveImage(file, cardId);
+            if (name is null)
+                return BadRequest();
+            card.picture = name;
+            context.cards.Update(card);
+            context.SaveChanges();
+            return Ok();
+
+        }
+
         [HttpGet]
         [Route("getImageById")]
         [EnableCors]
-        public IActionResult GetImageById(uint id)
+        public ActionResult GetImageById(uint id)
         {
             using var context = new flashcardsContext();
-            var converter = new ImageConverter();
-            return File((byte[])converter.ConvertTo(context.cards.First(c => c.id == id).picture, typeof(byte[])), "image/gif");
+            var imageFileName = (from c in context.cards
+                                 where c.id == LoggedInId() || c.isPublic
+                                 select c.picture).FirstOrDefault();
+            if (imageFileName is null)
+                return NotFound();
+            var path = Path.Combine(imagePath, imageFileName);
+            System.Console.WriteLine(path);
+            // var converter = new ImageConverter();
+            if (path.EndsWith(".png", true, null))
+                return PhysicalFile(path, "image/png");
+            else if (path.EndsWith(".jpg", true, null) || path.EndsWith(".jpeg", true, null))
+                return PhysicalFile(path, "image/jpeg");
+            else if (path.EndsWith(".gif", true, null))
+                return PhysicalFile(path, "image/gif");
+            return null;
+            // return File((byte[])converter.ConvertTo(context.cards.First(c => c.id == id && (c.ownerId == LoggedInId() || c.isPublic)).picture, typeof(byte[])), "image/gif");
+        }
+
+        private string SaveImage(IFormFile file, int imageId)
+        {
+            var uniqueFileName = "";
+            if (file == null) return null;
+            uniqueFileName = Path.Combine($"{imageId}.png");
+            var fullPath = Path.Combine(imagePath + uniqueFileName);
+            System.Console.WriteLine(fullPath);
+            using (var fileStream = new FileStream(fullPath, FileMode.Create))
+            {
+                file.CopyTo(fileStream);
+            }
+            return uniqueFileName;
+
         }
 
         private int LoggedInId()
@@ -144,7 +256,7 @@ namespace flashcards_server.Controllers
 
         private static Card.Card CreateCardFromMinCard(MinCard minCard, int ownerId)
         {
-            return new Card.Card(minCard.answer, minCard.question, minCard.image, minCard.inSet, ownerId, minCard.isPublic);
+            return new Card.Card(minCard.answer, minCard.question, minCard.inSet, ownerId, minCard.isPublic);
         }
 
         private static IEnumerable<PublicCard> CreatePublicCardFromCard(IEnumerable<Card.Card> listOfCards)

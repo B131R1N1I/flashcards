@@ -30,6 +30,7 @@ namespace flashcards_server
         }
 
         public IConfiguration Configuration { get; }
+        static public string rootPath { get; private set; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -43,7 +44,7 @@ namespace flashcards_server
                             .AllowAnyMethod();
                 });
             });
-            
+
             services.AddIdentity<User.User, IdentityRole<int>>()
                 .AddEntityFrameworkStores<flashcardsContext>()
                 .AddDefaultTokenProviders();
@@ -63,13 +64,13 @@ namespace flashcards_server
                         };
 
                     });
-                // .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme,
-                //     options => Configuration.Bind("CookieSettings", options));
+            // .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme,
+            //     options => Configuration.Bind("CookieSettings", options));
 
             services.AddOptions();
-            
-            
-            
+
+
+
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
@@ -112,6 +113,7 @@ namespace flashcards_server
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            rootPath = env.ContentRootPath;
             // if (env.IsDevelopment())
             {
 
@@ -123,15 +125,15 @@ namespace flashcards_server
             app.UseHttpsRedirection();
 
             app.UseAuthentication();
-            
+
             app.UseRouting();
 
             app.UseCors("default");
 
             app.UseAuthorization();
-            
+
             // app.UseAuthorization();
-            
+
 
             app.UseEndpoints(endpoints =>
             {
