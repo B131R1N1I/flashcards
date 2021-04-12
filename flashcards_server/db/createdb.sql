@@ -10,13 +10,14 @@ DROP TABLE IF EXISTS card_status;
 
 
 CREATE TABLE users(
-	id					SERIAL,
+	id					SERIAL UNIQUE,
 	username			TEXT UNIQUE NOT NULL,
 	email				TEXT UNIQUE NOT NULL,
 	name				TEXT,
 	surname				TEXT,
-	password			TEXT NOT NULL,
-	active 				BOOLEAN NOT NULL DEFAULT true,
+	password			BYTEA NOT NULL,
+	email_confirmed		BOOLEAN NOT NULL DEFAULT false,
+	active				BOOLEAN NOT NULL DEFAULT true,
 	
 	PRIMARY KEY(id)
 	-- ADD CONSTRAINT email 
@@ -24,12 +25,12 @@ CREATE TABLE users(
 
 
 CREATE TABLE sets(
-	id 					SERIAL,
+	id 				SERIAL UNIQUE,
 	name 				TEXT UNIQUE NOT NULL,
 	creator_id 			INTEGER NOT NULL,
 	owner_id 			INTEGER NOT NULL,
-	created_date 		TIMESTAMP NOT NULL,
-	last_modification	TIMESTAMP NOT NULL,
+	created_date 			TIMESTAMP NOT NULL,
+	last_modification		TIMESTAMP NOT NULL,
 	is_public			BOOLEAN NOT NULL,
 
 	PRIMARY KEY(id),
@@ -40,21 +41,26 @@ CREATE TABLE sets(
 
 
 CREATE TABLE cards(
-	id 					SERIAL,
+	id 				SERIAL UNIQUE,
 	question			TEXT NOT NULL,
 	answer				TEXT NOT NULL,
-	picture				BYTEA,
+	picture				TEXT,
 	in_set				INTEGER NOT NULL,
+	owner_id			INTEGER NOT NULL,
+	is_public			BOOLEAN NOT NULL,
 
 	PRIMARY KEY(id),
-	CONSTRAINT set_id
+	CONSTRAINT fk_set
 		FOREIGN KEY(in_set)
-			REFERENCES sets(id)
+			REFERENCES sets(id),
+	CONSTRAINT fk_owner
+		FOREIGN KEY(owner_id)
+			REFERENCES users(id) 
 );
 
 
 CREATE TABLE active_sets(
-	user_id				INTEGER NOT NULL,
+	user_id			INTEGER NOT NULL,
 	set_id				INTEGER NOT NULL,
 
 	CONSTRAINT id_user
@@ -67,8 +73,8 @@ CREATE TABLE active_sets(
 
 
 CREATE TABLE card_status(
-	card_id				INTEGER NOT NULL,
-	user_id				INTEGER NOT NULL,
+	card_id			INTEGER NOT NULL,
+	user_id			INTEGER NOT NULL,
 	last_review			TIMESTAMP NOT NULL,
 	next_review			TIMESTAMP NOT NULL,
 	active				BOOL NOT NULL,

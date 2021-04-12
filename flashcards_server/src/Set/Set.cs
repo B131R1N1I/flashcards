@@ -19,7 +19,9 @@ namespace flashcards_server.Set
         public DateTime lastModification { get; set; }
         public bool isPublic { get; set; }
 
+        [JsonIgnore]
         public User.User creator { get; set; }
+        [JsonIgnore]
         public ICollection<Card.Card> cards { get; set; }
 
         public Set(string name, int creator, int owner, DateTime createdDate, DateTime lastModification, bool isPublic, int id )
@@ -38,7 +40,7 @@ namespace flashcards_server.Set
 
         public override string ToString()
         {
-            return $"Set [{id}: ({name}, {creator}, {ownerId}, {createdDate}, {lastModification}, {isPublic})]";
+            return $"Set [{id}: ({name}, {creatorId}, {ownerId}, {createdDate}, {lastModification}, {isPublic})]";
         }
 
         public override bool Equals(object obj)
