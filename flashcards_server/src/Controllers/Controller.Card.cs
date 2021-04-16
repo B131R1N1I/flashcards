@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
-
 using System.IO;
 
 namespace flashcards_server.Controllers
@@ -23,7 +22,6 @@ namespace flashcards_server.Controllers
     [Route("fc/card")]
     public class CardController : ControllerBase
     {
-
         private readonly string rootPath = Startup.rootPath;
         private readonly string imagePath;
 
@@ -47,7 +45,8 @@ namespace flashcards_server.Controllers
                 using var context = new flashcardsContext();
                 if (!context.sets.Any(s => s.id == c.inSet))
                     return BadRequest($"There is no set with id {c.inSet}");
-                if (!context.sets.Any(s => s.id == c.inSet && (s.creatorId == id || s.ownerId == id)))
+                if (!context.sets.Any(s => s.id == c.inSet && (s.creatorId == id
+                                                               || s.ownerId == id)))
                     return BadRequest("Access denied");
                 var card = CreateCardFromMinCard(c, LoggedInId());
                 context.cards.Add(card);
@@ -70,9 +69,9 @@ namespace flashcards_server.Controllers
         [HttpPut]
         [Route("update")]
         [EnableCors]
-        [Consumes("application/json")]
-        [Produces("application/json")]
-        public IActionResult UpdateCard(UpdateRequest updateRequest)
+        // [Consumes("application/json")]
+        // [Produces("application/json")]
+        public IActionResult UpdateCard([FromForm] UpdateRequest updateRequest)
         {
             try
             {
@@ -80,7 +79,8 @@ namespace flashcards_server.Controllers
 
                 using var context = new flashcardsContext();
 
-                var card = context.cards.First(c => c.id == updateRequest.id && c.ownerId == LoggedInId());
+                var card = context.cards.First(c => c.id == updateRequest.id
+                                                    && c.ownerId == LoggedInId());
 
                 //db.GetCardById(updateRequest.id);
                 Console.WriteLine("check after card");
@@ -95,7 +95,7 @@ namespace flashcards_server.Controllers
                         card.answer = to;
                         break;
                     case "image":
-                        // card.picture = updateRequest.image;
+                        card.picture = SaveImage(updateRequest.image, card.id);
                         break;
                     default:
                         return BadRequest($"{what} isn't a proper value");
@@ -156,8 +156,7 @@ namespace flashcards_server.Controllers
         [HttpGet]
         [Route("getCardsBySet")]
         [EnableCors]
-        [Consumes("application/json")]
-        [Produces("application/json")]
+        // [Produces("application/json")]
         public IEnumerable<PublicCard> GetCardsBySetId(uint id)
         {
             try
@@ -165,7 +164,8 @@ namespace flashcards_server.Controllers
                 using var context = new flashcardsContext();
                 if (!context.sets.Any(s => s.id == id && (s.ownerId == LoggedInId() || s.isPublic)))
                     return null;
-                var tempCard = context.cards.Where(c => c.inSet == id && (c.ownerId == LoggedInId() || c.isPublic)).ToArray();
+                var tempCard = context.cards.Where(c => c.inSet == id && (c.ownerId == LoggedInId()
+                                                                          || c.isPublic)).ToList();
                 return CreatePublicCardFromCard(tempCard);
             }
             catch (Exception)
@@ -182,6 +182,7 @@ namespace flashcards_server.Controllers
             var cardId = model.cardId;
             var file = model.file;
 
+            // checks extension
             if (!imageExtensions.Any(x => file.FileName.EndsWith(x)))
                 return UnprocessableEntity();
 
@@ -215,7 +216,7 @@ namespace flashcards_server.Controllers
         [HttpGet]
         [Route("getImageById")]
         [EnableCors]
-        public ActionResult GetImageById(uint id)
+        public IActionResult GetImageById(uint id)
         {
             using var context = new flashcardsContext();
             var imageFileName = (from c in context.cards
@@ -259,23 +260,20 @@ namespace flashcards_server.Controllers
         }
 
         private static Card.Card CreateCardFromMinCard(MinCard minCard, int ownerId)
-        {
-            return new Card.Card(minCard.answer, minCard.question, minCard.inSet, ownerId, minCard.isPublic);
-        }
+            => new Card.Card(minCard.answer,
+                             minCard.question,
+                             minCard.inSet,
+                             ownerId,
+                             minCard.isPublic);
 
         private IEnumerable<PublicCard> CreatePublicCardFromCard(IEnumerable<Card.Card> listOfCards)
-        {
-            Console.WriteLine("aa");
-            return listOfCards.Select(CreatePublicCardFromCard);
-        }
+            => listOfCards.Select(CreatePublicCardFromCard);
 
         private PublicCard CreatePublicCardFromCard(Card.Card card)
-        {
-            // var href = (card.picture is not null ? $"getImageById?id={card.id}" : null);
-            return new PublicCard(
-                card.id, card.question, card.answer,
-                card.picture is not null,
-                card.inSet);
-        }
+            => new PublicCard(card.id,
+                              card.question,
+                              card.answer,
+                              card.picture is not null,
+                              card.inSet);
     }
 }

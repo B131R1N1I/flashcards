@@ -17,19 +17,19 @@ namespace flashcards_server.Controllers
         [HttpPost]
         [Route("create")]
         [EnableCors]
-        [Consumes("application/json")]
-        [Produces("application/json")]
-        public IActionResult CreateSet(SetToCreate setToCreate)
+        // [Consumes("application/json")]
+        // [Produces("application/json")]
+        public IActionResult CreateSet([FromForm] SetToCreate setToCreate)
         {
             try
             {
-                using (var context = new flashcardsContext())
-                {
-                    var id = LoggedInId();
-                    var set = new Set.Set(setToCreate.name, id, id, setToCreate.isPublic);
-                    context.sets.Add(set);
-                    context.SaveChanges();
-                }
+                using var context = new flashcardsContext();
+
+                var id = LoggedInId();
+                var set = new Set.Set(setToCreate.name, id, id, setToCreate.isPublic);
+                context.sets.Add(set);
+                context.SaveChanges();
+
 
                 return Ok();
             }
@@ -43,7 +43,7 @@ namespace flashcards_server.Controllers
         [Route("allPublicSets")]
         [EnableCors]
         [Produces("application/json")]
-        public List<Set.Set> GetAllSets()
+        public IEnumerable<Set.Set> GetAllSets()
         {
             using var context = new flashcardsContext();
             return context.sets.Where(s => s.isPublic).ToList();
@@ -67,7 +67,7 @@ namespace flashcards_server.Controllers
         {
             var id = LoggedInId();
             using var context = new flashcardsContext();
-            return context.sets.Where(s => s.ownerId == id || s.creatorId == id);
+            return context.sets.Where(s => s.ownerId == id || s.creatorId == id).ToList();
         }
 
         [HttpGet]
@@ -77,7 +77,7 @@ namespace flashcards_server.Controllers
         public IEnumerable<Set.Set> GetPublicSetsByNameLike(string name)
         {
             using var context = new flashcardsContext();
-            return context.sets.Where(s => s.name.Contains(name));
+            return context.sets.Where(s => s.name.Contains(name)).ToList();
         }
 
         [HttpPut]
@@ -90,16 +90,16 @@ namespace flashcards_server.Controllers
             try
             {
                 using var context = new flashcardsContext();
-                
+
                 var set = context.sets.First(s => s.id == change.setId);
                 if (set.ownerId != LoggedInId())
                     return Unauthorized("Access denied for this set");
-                
+
                 var user = context.users.First(u => u.Id == change.userId);
 
                 set.ownerId = user.Id;
                 context.SaveChanges();
-                
+
                 return Ok();
             }
             catch (ArgumentNullException e)
@@ -107,14 +107,14 @@ namespace flashcards_server.Controllers
                 return BadRequest(e.Message);
             }
         }
-        
+
         private int LoggedInId()
         {
-            return int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? 
+            return int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
                              throw new InvalidOperationException(
                                  $"Cannot validate - there's no user with id {ClaimTypes.NameIdentifier}"));
-        } 
-        
+        }
+
         // private Set.Set CreateSetFromMinSet(MinSet minSet)
         // {
         //     return new Set.Set(minSet.name, minSet.creator, minSet.owner, minSet.isPublic);
