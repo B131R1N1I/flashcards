@@ -1,0 +1,23 @@
+@page "/login"
+@inject HttpClient Http
+
+Login: <br>
+<input type="text" name="login" id="login" @bind-value="login" />
+<br>
+Password: <br>
+<input type="text" name="password" id="password" @bind-value="password" />
+<br>
+<Button @onclick="loginRequest"></Button>
+<span>@article</span>
+
+@code {
+    class req { public string login { get; set; } public string password { get; set; } }
+    class t { public string token { get; set; } }
+    string login, password, article;
+    async void loginRequest()
+    {
+        var postBody = new req { login = login, password = password };
+        using var response = await Http.PostAsJsonAsync<req>($"{@MyConstatns.serverAddress}/user/login", postBody);
+        article = (await response.Content.ReadFromJsonAsync<t>()).token;
+    }
+}
