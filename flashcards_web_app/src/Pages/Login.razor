@@ -1,5 +1,6 @@
 @page "/login"
 @inject HttpClient Http
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
 
 Login: <br>
 <input type="text" name="login" id="login" @bind-value="login" />
@@ -7,17 +8,16 @@ Login: <br>
 Password: <br>
 <input type="text" name="password" id="password" @bind-value="password" />
 <br>
-<Button @onclick="loginRequest"></Button>
-<span>@article</span>
+<button class="btn btn-primary" @onclick="loginRequest">Log in</button>
+<span>@localToken</span>
 
 @code {
-    class req { public string login { get; set; } public string password { get; set; } }
-    class t { public string token { get; set; } }
-    string login, password, article;
+    string login, password, localToken;
     async void loginRequest()
     {
-        var postBody = new req { login = login, password = password };
-        using var response = await Http.PostAsJsonAsync<req>($"{@MyConstatns.serverAddress}/user/login", postBody);
-        article = (await response.Content.ReadFromJsonAsync<t>()).token;
+        var postBody = new LoginRequest { login = login, password = password };
+        using var response = await Http.PostAsJsonAsync<LoginRequest>($"{@MyConstatns.serverAddress}/user/login", postBody);
+        localToken = (await response.Content.ReadFromJsonAsync<TokenResponse>()).token;
+        await localStorage.SetItemAsync<string>("token", localToken);
     }
 }
