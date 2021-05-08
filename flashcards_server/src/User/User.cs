@@ -43,7 +43,6 @@ namespace flashcards_server.User
         public virtual ICollection<Set.Set> sets { get; set; }
         
         
-        [JsonConstructor]
         public User(string username, string email, string name, string surname)
         {
             this.UserName = username;
@@ -51,6 +50,18 @@ namespace flashcards_server.User
             this.name = name;
             this.surname = surname;
         }
+
+        [JsonConstructor]
+        public User(int id, string username, string email, bool emailConfirmed, string name, string surname)
+        {
+            this.Id = id;
+            this.UserName = username;
+            this.Email = email;
+            this.EmailConfirmed = emailConfirmed;
+            this.name = name;
+            this.surname = surname;
+        }
+
         
         
         public override string ToString()
