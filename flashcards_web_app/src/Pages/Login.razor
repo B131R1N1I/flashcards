@@ -1,6 +1,18 @@
 @page "/login"
 @inject HttpClient Http
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject NavigationManager NavManager
+
+<style>
+    .failed {
+        width: 80%;
+        margin-top: 50px;
+        height: 100px;
+        align-items: center;
+        justify-content: center;
+        color: red;
+    }
+</style>
 
 Login: <br>
 <input type="text" name="login" id="login" @bind-value="login" />
@@ -8,24 +20,41 @@ Login: <br>
 Password: <br>
 <input type="text" name="password" id="password" @bind-value="password" />
 <br>
-<button class="btn btn-primary" @onclick="loginRequest">Log in</button>
+<button class="btn btn-primary" @onclick="LoginRequest">Log in</button>
+<div hidden=@hideFailed class="failed">Authorization has failed. Wrong login and/or password</div>
 
 @code {
     string login, password;
-    async void loginRequest()
+    bool hideFailed { get; set; } = true;
+    void OnLoginFailed()
+    {
+        hideFailed = false;
+    }
+    async void LoginRequest()
     {
         var postBody = new LoginRequest { login = login, password = password };
-        using (var response = await Http.PostAsJsonAsync<LoginRequest>($"{@MyConstatns.serverAddress}/user/login", postBody))
+        using (var tokenResponse = await Http.PostAsJsonAsync<LoginRequest>($"{@MyConstatns.serverAddress}/user/login",
+        postBody))
         {
-            var localToken = (await response.Content.ReadFromJsonAsync<TokenResponse>()).token;
-            await localStorage.SetItemAsync<string>("token", localToken);
-            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await localStorage.GetItemAsync<string>("token"));
+            if (tokenResponse.StatusCode == HttpStatusCode.OK)
+            {
+                var localToken = (await tokenResponse.Content.ReadFromJsonAsync<TokenResponse>()).token;
+                await localStorage.SetItemAsync<string>("token", localToken);
+                Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await
+                localStorage.GetItemAsync<string>("token"));
+                // some try..catch
+                using (var userDataResponse = await Http.GetAsync($"{@MyConstatns.serverAddress}/user/getMe"))
+                {
+                    var localUser = await userDataResponse.Content.ReadFromJsonAsync<LocalUser>();
+                    await localStorage.SetItemAsync<LocalUser>("localUser", localUser);
+                }
+            }
+            else
+            {
+                OnLoginFailed();
+            }
         }
-        using (var response = await Http.GetAsync($"{@MyConstatns.serverAddress}/user/getMe"))
-        {
-            var localUser = await response.Content.ReadFromJsonAsync<LocalUser>();
-            await localStorage.SetItemAsync<LocalUser>("localUser", localUser);
-            Console.WriteLine(await localStorage.GetItemAsync<LocalUser>("localUser"));
-        }
+        StateHasChanged();
+
     }
 }
