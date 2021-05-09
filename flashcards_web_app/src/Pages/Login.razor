@@ -21,10 +21,12 @@ Password: <br>
 <input type="text" name="password" id="password" @bind-value="password" />
 <br>
 <button class="btn btn-primary" @onclick="LoginRequest">Log in</button>
+@CheckConnectionMessage
 <div hidden=@hideFailed class="failed">Authorization has failed. Wrong login and/or password</div>
 
 @code {
     string login, password;
+    RenderFragment CheckConnectionMessage;
     bool hideFailed { get; set; } = true;
     void OnLoginFailed()
     {
@@ -33,27 +35,36 @@ Password: <br>
     async void LoginRequest()
     {
         var postBody = new LoginRequest { login = login, password = password };
-        using (var tokenResponse = await Http.PostAsJsonAsync<LoginRequest>($"{@MyConstatns.serverAddress}/user/login",
-        postBody))
+        try
         {
-            if (tokenResponse.StatusCode == HttpStatusCode.OK)
+            using (var tokenResponse = await Http.PostAsJsonAsync<LoginRequest>($"{@MyConstatns.serverAddress}/user/login",
+            postBody))
             {
-                var localToken = (await tokenResponse.Content.ReadFromJsonAsync<TokenResponse>()).token;
-                await localStorage.SetItemAsync<string>("token", localToken);
-                Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await
-                localStorage.GetItemAsync<string>("token"));
-                // some try..catch
-                using (var userDataResponse = await Http.GetAsync($"{@MyConstatns.serverAddress}/user/getMe"))
+                if (tokenResponse.StatusCode == HttpStatusCode.OK)
                 {
-                    var localUser = await userDataResponse.Content.ReadFromJsonAsync<LocalUser>();
-                    await localStorage.SetItemAsync<LocalUser>("localUser", localUser);
+                    var localToken = (await tokenResponse.Content.ReadFromJsonAsync<TokenResponse>()).token;
+                    await localStorage.SetItemAsync<string>("token", localToken);
+                    Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await
+                    localStorage.GetItemAsync<string>("token"));
+                    // some try..catch
+                    using (var userDataResponse = await Http.GetAsync($"{@MyConstatns.serverAddress}/user/getMe"))
+                    {
+                        var localUser = await userDataResponse.Content.ReadFromJsonAsync<LocalUser>();
+                        await localStorage.SetItemAsync<LocalUser>("localUser", localUser);
+                    }
+                }
+                else
+                {
+                    OnLoginFailed();
                 }
             }
-            else
-            {
-                OnLoginFailed();
-            }
         }
+        catch (HttpRequestException e)
+        {
+            if (e.Message.Contains("Failed to fetch"))
+                CheckConnectionMessage = @<p><br />Check your connection and try again...</p>;
+        }
+
         StateHasChanged();
 
     }
