@@ -15,12 +15,6 @@ namespace flashcards_server
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .ConfigureAppConfiguration((hostingContext, config) =>
-                {
-                    config.AddJsonFile("/home/berni/programowanie/csharp/flashcards/flashcards_server/src/appsettings.json",
-                    optional: false,
-                    reloadOnChange: true);
-                })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
