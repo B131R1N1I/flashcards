@@ -46,11 +46,11 @@ Password: <br>
                     await localStorage.SetItemAsync<string>("token", localToken);
                     Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await
                     localStorage.GetItemAsync<string>("token"));
-                    // some try..catch
                     using (var userDataResponse = await Http.GetAsync($"{@MyConstatns.serverAddress}/user/getMe"))
                     {
                         var localUser = await userDataResponse.Content.ReadFromJsonAsync<LocalUser>();
                         await localStorage.SetItemAsync<LocalUser>("localUser", localUser);
+                        NavManager.NavigateTo("/");
                     }
                 }
                 else
